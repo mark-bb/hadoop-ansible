@@ -1,0 +1,85 @@
+- name: Create hadoop user and setup passwordless SSH for it
+  ansible.builtin.import_tasks: hadoop-user-create.yml
+
+- name: Stop Hadoop services
+  ansible.builtin.import_tasks: stop.yml
+  when: not (hadoop_config_only | bool)
+
+- name: Install Hadoop distro
+  ansible.builtin.import_tasks: install_hadoop.yml
+
+- name: Install Tez distro
+  ansible.builtin.import_tasks: install_tez.yml
+  when: with_tez | bool
+
+- name: Copy Hadoop configs
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: "hadoop.sh.j2",      dest: "{{ hadoop_profile }}" }
+    - { src: "hadoop-env.sh.j2",  dest: "{{ hadoop_conf_dir ~ '/hadoop-env.sh' }}" }
+    - { src: "core-site.xml.j2",  dest: "{{ hadoop_conf_dir ~ '/core-site.xml' }}" }
+    - { src: "kms-site.xml.j2",   dest: "{{ hadoop_conf_dir ~ '/kms-site.xml' }}" }
+    - { src: "kms-env.sh.j2",     dest: "{{ hadoop_conf_dir ~ '/kms-env.sh' }}" }
+    - { src: "kms_jaas.conf.j2",  dest: "{{ hadoop_conf_dir ~ '/kms_jaas.conf' }}" }
+    - { src: "hdfs_jaas.conf.j2", dest: "{{ hadoop_conf_dir ~ '/hdfs_jaas.conf' }}" }
+
+- name: Create hadoop directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ hadoop_user }}"
+    group: "{{ hadoop_user }}"
+    state: directory
+  with_items:
+    - "{{ hadoop_log_dir }}"
+    
+- name: Create hadoop tmp directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ hadoop_user }}"
+    group: "{{ hadoop_user }}"
+    state: directory
+    mode: "0775"
+  with_items:
+    - "{{ hadoop_tmp_dir }}"
+    
+- name: Set the workers file
+  ansible.builtin.copy:
+    content: "{{ groups[hadoop_datanodes_group] | join('\n') }}"
+    dest: "{{ hadoop_conf_dir ~ '/workers' }}"
+    owner: "{{ hadoop_user }}"
+    group: "{{ hadoop_user }}"
+
+- block:
+  - name: Create {{ keytabs_path }} directory
+    ansible.builtin.file:
+      path: "{{ keytabs_path }}"
+      owner: "root"
+      group: "root"
+      state: directory
+
+  - name: Keytabs copy
+    ansible.builtin.copy:
+      src: "{{ item }}"
+      dest: "{{ keytabs_path }}"
+      owner: "root"
+      group: "{{ hadoop_user }}"
+      mode: 0640
+    with_fileglob:
+      - "{{ 'files/kerberos/keytabs/' ~ inventory_hostname ~ '/*.keytab' }}"
+  
+  - name: Ldap password file copy
+    ansible.builtin.copy:
+      src: "files/kerberos/ldap_bind_password_file.txt"
+      dest: "{{ ldap_bind_password_file }}"
+      owner: "root"
+      group: "{{ hadoop_user }}"
+      mode: 0640
+
+  when: with_kerberos | bool
+
+- name: Start Hadoop services
+  ansible.builtin.import_tasks: start.yml
+  when: not (hadoop_config_only | bool)
+

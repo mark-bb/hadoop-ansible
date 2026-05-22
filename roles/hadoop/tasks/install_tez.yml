@@ -1,0 +1,82 @@
+- name: Check if {{ tez_home }} exists
+  ansible.builtin.stat:
+    path: "{{ tez_home }}"
+  register: res
+
+- block:
+  - name: Install Tez distro
+    ansible.builtin.unarchive:
+      src: "{{ lookup('ansible.builtin.fileglob', 'files/distrib/apache-tez-*.tar.gz') }}"
+      dest: "{{ tez_home_base }}"
+      owner: "root"
+      group: "root"
+
+  - name: Get Tez install directory name
+    ansible.builtin.shell:
+      cmd: "{{ 'ls -d ' ~ tez_home_base ~ '/apache-tez-*' }}"
+    register: tez_install_dir
+  
+  - name: Check existing Tez directories
+    ansible.builtin.assert:
+      that: (tez_install_dir.stdout_lines | length() | int) == 1
+      fail_msg: "{{ 'There must be the only tez installation in the ' ~ tez_home_base ~ ' directory' }}"
+  
+  - name: Create a relative softlink to the Tez installation
+    ansible.builtin.file:
+      src: "{{ (tez_install_dir.stdout | ansible.builtin.split('/'))[-1] }}"
+      dest: "{{ tez_home }}"
+      state: link
+
+  when: not (res.stat.exists | bool)
+
+- name: Copy Tez config
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: "tez-site.xml.j2",  dest: "{{ tez_conf_dir ~ '/tez-site.xml' }}" }
+
+- name: Find duplicate Tez jar
+  ansible.builtin.find:
+    paths: "{{ tez_home ~ '/lib' }}"
+    patterns: "slf4j-reload4j-*.jar"
+  register: find_res
+
+- name: Delete duplicate Tez jar
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ find_res.files | map(attribute='path') }}"
+  when: find_res.matched == 1
+
+- name: Put Tez tar.gzip to hadoop
+  block:
+
+  - name: Get kerberos TGT
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' kinit -kt ' ~ keytabs_path ~ '/RM.keytab RM/' ~ inventory_hostname }}"
+    when: with_kerberos | bool
+  
+  - name: List Tez gz
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hadoop fs -test -e ' ~ tez_lib_uris }}"
+    register: res
+    ignore_errors: true
+    no_log: true
+    failed_when: False
+
+  - name: Create Tez dir in hadoop and put gz there
+    block:
+
+    - name: Create Tez dir
+      ansible.builtin.shell:
+        cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hadoop fs -mkdir -p ' ~ tez_lib_uris_base }}"
+
+    - name: Put Tez jar to hadoop fs
+      ansible.builtin.shell:
+        cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' sh -lc \"tar -czf - -C ' ~ tez_home ~ ' . | hadoop fs -put - ' ~ tez_lib_uris ~ '\"' }}"
+
+    when: res.rc != 0
+
+  when: inventory_hostname == groups[hadoop_namenodes_group][0]
+

@@ -1,0 +1,20 @@
+---
+- name: Get user info
+  ansible.builtin.getent:
+    split: ":"
+    database: passwd
+    key: "{{ hadoop_user }}"
+
+- ansible.builtin.set_fact:
+    hadoop_user_home: "{{ ansible_facts.getent_passwd[hadoop_user][4] }}"
+
+- name: Config HA HDFS
+  ansible.builtin.include_tasks: config-ha.yml
+
+- name: Initialize HA HDFS
+  ansible.builtin.include_tasks: init-ha.yml
+  when: not (hdfs_config_only | bool)
+
+- name: Start HDFS
+  ansible.builtin.include_tasks: start-hdfs-ha.yml
+

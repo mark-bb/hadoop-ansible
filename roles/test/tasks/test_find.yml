@@ -1,0 +1,11 @@
+- name: Find duplicate slf4j jar
+  ansible.builtin.find:
+    paths: "/opt/hbase/lib/client-facing-thirdparty"
+    patterns: "*.jar"
+  register: hbase_file_slf4j_res
+
+- debug:
+    var: hbase_file_slf4j_res
+
+- debug:
+    msg: "{{ hbase_file_slf4j_res.files | map(attribute='path') }}"

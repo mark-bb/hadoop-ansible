@@ -1,0 +1,36 @@
+- name: Coprocessor config
+  block:
+  - name: Find hbase tl jar
+    ansible.builtin.find:
+      paths: "{{ hbase_home ~ '/lib' }}"
+      use_regex: true
+      patterns: "hadoop-yarn-server-timelineservice-\\d.*\\.jar"
+    register: find_res
+
+  - debug:
+      var: find_res
+  
+  - name: Delete hbase tl jar
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: absent
+    loop: "{{ find_res.files | map(attribute='path') }}"
+
+  - name: TL2 jars to link to hbase
+    ansible.builtin.find:
+      paths: "{{ hadoop_home ~ '/share/hadoop/yarn/timelineservice' }}"
+      use_regex: true
+      patterns: "hadoop-yarn-server-timelineservice-(\\d|hbase-client|hbase-common).*\\.jar"
+    register: find_res
+
+  - debug:
+      var: find_res
+  
+  - name: Create links to TL2 jars
+    ansible.builtin.file:
+      src: "{{ item }}"
+      dest: "{{ hbase_home ~ '/lib/' ~ ( item | basename ) }}"
+      state: link
+    loop: "{{ find_res.files | map(attribute='path') }}"
+
+  when: inventory_hostname == yarn_timeline_hostname

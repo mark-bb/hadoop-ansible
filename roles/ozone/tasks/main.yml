@@ -1,0 +1,26 @@
+---
+- block:
+  - name: Setup vars
+    ansible.builtin.import_tasks: set-env.yml
+
+  - name: Install ozone in HA env
+    ansible.builtin.import_tasks: install-ha.yml
+    when: 
+      - play_action == "install"
+      - with_ozone_ha | bool
+
+  - name: Stop ozone in HA
+    ansible.builtin.import_tasks: stop-ozone-ha.yml
+    when: 
+      - play_action == "stop"
+      - with_ozone_ha | bool
+
+  - name: Start ozone in HA
+    ansible.builtin.import_tasks: start-ozone-ha.yml
+    when: 
+      - play_action == "start"
+      - with_ozone_ha | bool
+
+  when: 
+    - with_ozone | bool
+    

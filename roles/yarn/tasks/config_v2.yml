@@ -1,0 +1,64 @@
+- name: Find hbase tl jar
+  ansible.builtin.find:
+    paths: "{{ hbase_home ~ '/lib' }}"
+    use_regex: true
+    patterns: "hadoop-yarn-server-timelineservice-\\d.*\\.jar"
+  register: find_res
+
+- name: Delete hbase tl jar
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ find_res.files | map(attribute='path') }}"
+
+- name: TL2 jars to link to hbase
+  ansible.builtin.find:
+    paths: "{{ hadoop_home ~ '/share/hadoop/yarn/timelineservice' }}"
+    use_regex: true
+    patterns: "hadoop-yarn-server-timelineservice-(\\d|hbase-client|hbase-common).*\\.jar"
+  register: find_res
+
+- name: Create links to TL2 jars
+  ansible.builtin.file:
+    src: "{{ item }}"
+    dest: "{{ hbase_home ~ '/lib/' ~ ( item | basename ) }}"
+    state: link
+  loop: "{{ find_res.files | map(attribute='path') }}"
+
+- block:
+
+  - name: Get kerberos TGT
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' kinit -kt ' ~ keytabs_path ~ '/RM.keytab RM/' ~ inventory_hostname }}"
+    when: with_kerberos | bool
+
+  - name: "{{ 'Check if the file exists: ' ~ yarn_timeline_hbase_coprocessor_jar_location }}"
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hadoop fs -test -f ' ~ yarn_timeline_hbase_coprocessor_jar_location }}"
+    register: res
+    ignore_errors: true
+    no_log: true
+    failed_when: False
+    
+  - block:
+    - name: "{{ 'Create the cp dir: ' ~ yarn_timeline_hbase_coprocessor_jar_dir }}"
+      ansible.builtin.shell:
+        cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hadoop fs -mkdir -p ' ~ yarn_timeline_hbase_coprocessor_jar_dir }}"
+      
+    - name: "{{ 'Put the tl2 jar to ' ~ yarn_timeline_hbase_coprocessor_jar_location }}"
+      ansible.builtin.shell:
+        cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hadoop fs -put ' ~ hadoop_home ~ '/share/hadoop/yarn/timelineservice/hadoop-yarn-server-timelineservice-hbase-coprocessor-*.jar ' ~ yarn_timeline_hbase_coprocessor_jar_location }}"
+  
+    when: res.rc != 0
+    
+  - name: Create Hbase schema
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hbase org.apache.hadoop.yarn.server.timelineservice.storage.TimelineSchemaCreator -create -skipExistingTable' }}"
+    register: res
+  
+  - name: Show the result of schema creation
+    ansible.builtin.debug:
+      var: res
+  
+  when: inventory_hostname == yarn_timeline_hostname
+

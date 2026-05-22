@@ -1,0 +1,16 @@
+<configuration>
+<property>
+  <name>beeline.hs2.jdbc.url.tcpLoc</name>
+  <value>jdbc:hive2://astra181-scylla-04.internal:10000/default;principal=hive/_HOST@DOMAIN.COM;ssl=true;sslTrustStore=/etc/security/certs/truststore.jks;trustStorePassword=passw0rd</value>
+</property>
+
+<property>
+  <name>beeline.hs2.jdbc.url.tcpZk</name>
+  <value>jdbc:hive2://astra181-scylla-01.internal:2281,astra181-scylla-02.internal:2281,astra181-scylla-03.internal:2281/default;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2;principal=hive/_HOST@DOMAIN.COM;ssl=true;sslTrustStore=/etc/security/certs/truststore.jks;trustStorePassword=passw0rd</value>
+</property>
+
+<property>
+  <name>beeline.hs2.jdbc.url.default</name>
+  <value>tcpZk</value>
+</property>
+</configuration>

@@ -1,0 +1,27 @@
+yarn_config_only: "no"
+
+yarn_rm_hostname: "{{ groups[hadoop_namenodes_group][0] }}"
+yarn_timeline_hostname: "{{ groups[hadoop_namenodes_group][0] }}"
+yarn_mrhist_hostname: "{{ groups[hadoop_namenodes_group][0] }}"
+
+yarn_rmstore_dir_hadoop:  "{{ fs_defaultFS ~ ( with_ozone | bool | ternary('/vol1/bucket1/rmstore',    '/rmstore') ) }}"
+yarn_timeline_active_dir: "{{ fs_defaultFS ~ ( with_ozone | bool | ternary('/vol1/bucket1/ats/active', '/ats/active') ) }}"
+yarn_timeline_done_dir:   "{{ fs_defaultFS ~ ( with_ozone | bool | ternary('/vol1/bucket1/ats/done',   '/ats/done') ) }}"
+
+mapreduce_jobhistory_kerberos_principal: "{{ 'MR/_HOST@' ~ kerberos_realm }}"
+mapreduce_jobhistory_kerberos_keytab: "{{ keytabs_path	~ '/MR.keytab' }}"
+
+yarn_rm_kerberos_principal: "{{ 'RM/_HOST@' ~ kerberos_realm }}"
+yarn_rm_kerberos_keytab: "{{ keytabs_path	~ '/RM.keytab' }}"
+yarn_nm_kerberos_principal: "{{ 'NM/_HOST@' ~ kerberos_realm }}"
+yarn_nm_kerberos_keytab: "{{ keytabs_path	~ '/NM.keytab' }}"
+yarn_timeline_kerberos_principal: "{{ 'TL/_HOST@' ~ kerberos_realm }}"
+yarn_timeline_kerberos_keytab: "{{ keytabs_path	~ '/TL.keytab' }}"
+yarn_http_kerberos_principal: "{{ 'HTTP/_HOST@' ~ kerberos_realm }}"
+yarn_http_kerberos_keytab: "{{ keytabs_path	~ '/HTTP.keytab' }}"
+
+yarn_log_server_url: "{{ ( with_ssl | bool | ternary('https://' ~ yarn_mrhist_hostname ~ ':19890', 'http://' ~ yarn_mrhist_hostname ~ ':19888') ) ~ '/jobhistory/logs' }}"
+
+yarn_timeline_hbase_coprocessor_jar_dir: "{{ 'hdfs://' ~ hdfs_nameservice ~ '/hbase/coprocessor' }}"
+yarn_timeline_hbase_coprocessor_jar_location: "{{ yarn_timeline_hbase_coprocessor_jar_dir ~ '/hadoop-yarn-server-timelineservice.jar' }}"
+

@@ -1,0 +1,16 @@
+<configuration>
+<property>
+  <name>beeline.hs2.jdbc.url.tcpLoc</name>
+  <value>{{ 'jdbc:hive2://' ~ hive_hostname ~ ':10000/default' ~ ( with_kerberos | bool | ternary(';principal=hive/_HOST@' ~ kerberos_realm, '' ) ) ~ ( hive_with_ssl | bool | ternary(';ssl=true;sslTrustStore=' ~ ssl_server_truststore_location ~ ';trustStorePassword=' ~ ssl_password, '') ) }}</value>
+</property>
+
+<property>
+  <name>beeline.hs2.jdbc.url.tcpZk</name>
+  <value>{{ 'jdbc:hive2://' ~ ha_zookeeper_quorum ~ '/default;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2' ~ ( with_kerberos | bool | ternary(';principal=hive/_HOST@' ~ kerberos_realm, '' ) ) ~ ( hive_with_ssl | bool | ternary(';ssl=true;sslTrustStore=' ~ ssl_server_truststore_location ~ ';trustStorePassword=' ~ ssl_password, '') ) }}</value>
+</property>
+
+<property>
+  <name>beeline.hs2.jdbc.url.default</name>
+  <value>{{ with_zookeeper | bool | ternary('tcpZk', 'tcpLoc') }}</value>
+</property>
+</configuration>

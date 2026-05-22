@@ -1,0 +1,53 @@
+- name: Block Name
+  block: 
+  - name: Listing
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ls -l ' ~ tez_home ~ '/' }}"
+    register: res
+
+  - ansible.builtin.debug:
+      var: res.stdout_lines
+
+  - name: Get kerberos TGT
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' kinit -kt ' ~ keytabs_path ~ '/RM.keytab RM/' ~ inventory_hostname }}"
+    when: with_kerberos | bool
+
+  - name: Find duplicate Tez jar
+    ansible.builtin.find:
+      paths: "{{ tez_home ~ '/lib' }}"
+      patterns: "slf4j-reload4j-*.jar"
+    register: res
+
+  - name: Delete duplicate Tez jar
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: absent
+    loop: "{{ res.files }}"
+    when: res.matched == 1
+
+  - ansible.builtin.debug:
+      var: res
+
+  - name: List Tez gz
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hadoop fs -test -e ' ~ tez_lib_uris }}"
+    register: res
+    ignore_errors: true
+    no_log: true
+    failed_when: False
+
+  - name: Create Tez dir in hadoop and put gz there
+    block:
+
+    - name: Create Tez dir
+      ansible.builtin.shell:
+        cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hadoop fs -mkdir -p ' ~ tez_lib_uris_base }}"
+
+    - name: Put Tez jar to hadoop fs 
+      ansible.builtin.shell:
+        cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' sh -lc \"tar -czf - -C ' ~ tez_home ~ ' . | hadoop fs -put - ' ~ tez_lib_uris ~ '\"' }}"
+
+    when: res.rc != 0
+
+  when: inventory_hostname == groups[hadoop_namenodes_group][0]

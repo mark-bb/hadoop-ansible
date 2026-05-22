@@ -1,0 +1,72 @@
+---
+- name: Check if HddsDatanodeService is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep -F HddsDatanodeService || true' }}"
+  register: res
+  
+- name: Stop HddsDatanodeService if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone --daemon stop datanode' }}"
+  when:
+    - (res.stdout_lines | length()) != 0
+
+
+- name: Check if ReconServer is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep -F ReconServer || true' }}"
+  register: res
+  
+- name: Stop ReconServer if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone --daemon stop recon' }}"
+  when:
+    - (res.stdout_lines | length()) != 0
+
+
+- name: Check if HttpFSServerWebServer is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep -F HttpFSServerWebServer || true' }}"
+  register: res
+  
+- name: Stop HttpFSServerWebServer if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone --daemon stop httpfs' }}"
+  when:
+    - (res.stdout_lines | length()) != 0
+
+
+- name: Check if S3 GW is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep -F Gateway || true' }}"
+  register: res
+  
+- name: Stop Gateway if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone --daemon stop s3g' }}"
+  when:
+    - (res.stdout_lines | length()) != 0
+
+
+- name: Check if OzoneManagerStarter is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep -F OzoneManagerStarter || true' }}"
+  register: res
+  
+- name: Stop OzoneManagerStarter if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone --daemon stop om' }}"
+  when:
+    - (res.stdout_lines | length()) != 0
+
+
+- name: Check if StorageContainerManagerStarter is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep -F StorageContainerManagerStarter || true' }}"
+  register: res
+  
+- name: Stop StorageContainerManagerStarter if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone --daemon stop scm' }}"
+  when:
+    - (res.stdout_lines | length()) != 0
+

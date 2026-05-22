@@ -1,0 +1,59 @@
+---
+- name: Setup variables
+  hosts: hadoop
+  tasks:
+    - name: Setup variables
+      ansible.builtin.include_tasks: tasks/set-env.yml
+  tags:
+    - always
+
+- name: hadoop [un]install
+  hosts: hadoop
+  roles:
+    - role: hadoop
+  tags:
+    - hadoop
+
+- name: hdfs [un]install
+  hosts: hadoop
+  roles:
+    - role: hdfs
+  tags:
+    - hdfs
+
+- name: ozone [un]install
+  hosts: hadoop
+  roles:
+    - role: ozone
+  tags:
+    - ozone
+  
+- name: yarn config
+  hosts: hadoop
+  roles:
+    - role: yarn
+  tags:
+    - yarn
+
+- name: hive config
+  hosts: hadoop
+  roles:
+    - role: hive
+  tags:
+    - hive
+
+- name: spark config
+  hosts: hadoop
+  roles:
+    - role: spark
+  tags:
+    - spark
+
+- name: hbase config
+  hosts:
+    - hbase_hosts
+    - yarn_hosts
+  roles:
+    - role: hbase
+  tags:
+    - hbase

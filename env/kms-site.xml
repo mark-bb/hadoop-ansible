@@ -1,0 +1,39 @@
+<configuration>
+
+  <property><name>hadoop.kms.key.provider.uri</name><value>jceks://file@/${user.home}/kms.keystore</value></property>
+  <!-- <property><name>hadoop.security.keystore.java-keystore-provider.password-file</name><value>kms.keystore.password</value></property> -->
+
+  <property><name>hadoop.kms.cache.enable</name><value>true</value></property>
+  <property><name>hadoop.kms.cache.timeout.ms</name><value>600000</value></property>
+  <property><name>hadoop.kms.current.key.cache.timeout.ms</name><value>30000</value></property>
+
+  <property><name>hadoop.kms.authentication.type</name><value>kerberos</value></property>
+  <property><name>hadoop.kms.authentication.kerberos.keytab</name><value>/etc/security/keytabs/HTTP.keytab</value></property>
+  <property><name>hadoop.kms.authentication.kerberos.principal</name><value>HTTP/astra181-scylla-01.internal@DOMAIN.COM</value></property>
+  <property><name>hadoop.kms.authentication.kerberos.name.rules</name><value>DEFAULT</value></property>
+  <property><name>hadoop.kms.ssl.enabled</name><value>true</value></property>
+   
+  <property><name>hadoop.kms.proxyuser.hadoop.users</name><value>*</value></property>
+  <property><name>hadoop.kms.proxyuser.hadoop.groups</name><value>*</value></property>
+  <property><name>hadoop.kms.proxyuser.hadoop.hosts</name><value>*</value></property>   
+
+  <property><name>hadoop.kms.authentication.delegation-token.update-interval.sec</name><value>86400</value></property>
+  <property><name>hadoop.kms.authentication.delegation-token.max-lifetime.sec</name><value>604800</value></property>
+  <property><name>hadoop.kms.authentication.delegation-token.renew-interval.sec</name><value>86400</value></property>
+  <property><name>hadoop.kms.authentication.delegation-token.removal-scan-interval.sec</name><value>3600</value></property>
+
+  <property><name>hadoop.kms.authentication.signer.secret.provider</name><value>zookeeper</value></property>
+  <property><name>hadoop.kms.authentication.signer.secret.provider.zookeeper.path</name><value>/hadoop-kms/hadoop-auth-signature-secret</value></property>
+  <property><name>hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string</name><value>astra181-scylla-01.internal:2281,astra181-scylla-02.internal:2281,astra181-scylla-03.internal:2281</value></property>
+  <property><name>hadoop.kms.authentication.signer.secret.provider.zookeeper.auth.type</name><value>sasl</value></property>
+  <property><name>hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.keytab</name><value>/etc/security/keytabs/kms.keytab</value></property>
+  <property><name>hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal</name><value>kms/astra181-scylla-01.internal@DOMAIN.COM</value></property>
+  
+  <property><name>hadoop.kms.authentication.zk-dt-secret-manager.enable</name><value>true</value></property>
+  <property><name>hadoop.kms.authentication.zk-dt-secret-manager.zkConnectionString</name><value>astra181-scylla-01.internal:2281,astra181-scylla-02.internal:2281,astra181-scylla-03.internal:2281</value></property>
+  <property><name>hadoop.kms.authentication.zk-dt-secret-manager.znodeWorkingPath</name><value>zkdtsm</value></property>
+  <property><name>hadoop.kms.authentication.zk-dt-secret-manager.zkAuthType</name><value>sasl</value></property>
+  <property><name>hadoop.kms.authentication.zk-dt-secret-manager.kerberos.keytab</name><value>/etc/security/keytabs/kms.keytab</value></property>
+  <property><name>hadoop.kms.authentication.zk-dt-secret-manager.kerberos.principal</name><value>kms/astra181-scylla-01.internal@DOMAIN.COM</value></property>  
+  
+</configuration>

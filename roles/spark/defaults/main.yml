@@ -1,0 +1,16 @@
+play_action: "install"
+spark_config_only: "yes"
+spark_with_ssl: "yes"
+
+spark_home_base: "/opt"
+spark_home: "{{ spark_home_base ~ '/spark' }}"
+spark_conf_dir: "{{ spark_home ~ '/conf' }}"
+spark_profile: "/etc/profile.d/spark.sh"
+spark_master_hostname: "{{ groups[hadoop_namenodes_group][0] }}"
+spark_log_dir_os: "{{ hadoop_log_dir ~ '/spark' }}"
+spark_log_dir_hadoop: "{{ fs_defaultFS ~ ( with_ozone | bool | ternary('/vol1/bucket1/spark-logs', '/spark-logs') ) }}"
+spark_history_hostname: "{{ groups[hadoop_namenodes_group][0] }}"
+
+spark_history_kerberos_principal: "{{ 'spark/' ~ inventory_hostname ~ '@' ~ kerberos_realm }}"
+spark_history_kerberos_keytab: "{{ keytabs_path ~ '/spark.keytab' }}"
+

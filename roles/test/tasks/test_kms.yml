@@ -1,0 +1,8 @@
+- name: Check if HddsDatanodeService is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep -F KMSWebServer || true' }}"
+  register: res
+
+- ansible.builtin.debug:
+    var: res
+

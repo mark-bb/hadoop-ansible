@@ -1,0 +1,28 @@
+export KMS_TEMP=/tmp/kms
+{% if with_kerberos | bool %}
+export KRB5CCNAME=/tmp/krb5cc_kms
+kinit -kt {{ hadoop_kms_kerberos_keytab ~ ' ' ~ hadoop_kms_kerberos_principal}}
+export KRB5_TRACE=/dev/stdout
+export HADOOP_JAAS_DEBUG=true
+{% endif %}
+{% if with_zookeeper | bool %}
+export HADOOP_OPTS="${HADOOP_OPTS}
+{% if with_kerberos | bool %}
+-Dsun.security.krb5.debug=true
+-Dsun.security.spnego.debug=true
+-Djavax.security.auth.useSubjectCredsOnly=false
+-Djava.security.auth.login.config={{ hadoop_conf_dir ~ '/kms_jaas.conf' }}
+-Dzookeeper.sasl.clientconfig=ZKSignerSecretProviderClient
+{% endif %}
+{% if with_ssl | bool %}
+-Dzookeeper.client.secure=true
+-Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty
+-Dzookeeper.ssl.keyStore.location={{ ssl_server_keystore_location }}
+-Dzookeeper.ssl.keyStore.type=JKS
+-Dzookeeper.ssl.keyStore.password={{ ssl_password }}
+-Dzookeeper.ssl.trustStore.location={{ ssl_server_truststore_location }}
+-Dzookeeper.ssl.trustStore.type=JKS
+-Dzookeeper.ssl.trustStore.password={{ ssl_password }}
+{% endif %}
+"
+{% endif %}

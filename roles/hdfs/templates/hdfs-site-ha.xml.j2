@@ -1,0 +1,54 @@
+<configuration>
+  <property><name>dfs.namenode.name.dir</name><value>{{ hdfs_dfs_namenode_dir }}</value></property>
+  <property><name>dfs.namenode.rpc-bind-host</name><value>0.0.0.0</value></property>
+  <property><name>dfs.namenode.http-bind-host</name><value>0.0.0.0</value></property>
+  <property><name>dfs.datanode.data.dir</name><value>{{ hdfs_dfs_datanode_dir }}</value></property>
+  <property><name>dfs.replication</name><value>{{ hdfs_dfs_replication }}</value></property>
+  <property><name>dfs.namenode.datanode.registration.ip-hostname-check</name><value>false</value></property>
+  <property><name>dfs.nameservices</name><value>{{ hdfs_nameservice }}</value></property>
+  <property><name>dfs.internal.nameservices</name><value>{{ hdfs_nameservice }}</value></property>
+
+  <property><name>dfs.ha.nn.not-become-active-in-safemode</name><value>true</value></property>
+
+  <property><name>dfs.ha.namenodes.{{ hdfs_nameservice }}</name><value>{{ groups[hadoop_namenodes_group] | map('regex_replace', '\..*', '') | join(',') }}</value></property>
+
+  {{ hdfs_dfs_namenode_rpc_address }}
+  
+  {{ hdfs_dfs_namenode_http_address }}
+
+  {{ hdfs_dfs_namenode_shared_edits_dir }}
+  <property><name>dfs.journalnode.edits.dir</name><value>{{ hdfs_dfs_journalnode_dir }}</value></property>
+
+  <property><name>dfs.client.failover.proxy.provider.{{ hdfs_nameservice }}</name><value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value></property>
+  <property><name>dfs.ha.fencing.methods</name><value>sshfence</value></property>
+  <property><name>dfs.ha.fencing.ssh.private-key-files</name><value>{{ hadoop_user_home ~ '/.ssh/id_rsa' }}</value></property>
+  {% if with_zookeeper | bool %}
+  <!-- <property><name>dfs.ha.automatic-failover.enabled.{{ hdfs_nameservice }}</name><value>true</value></property> -->
+  <property><name>dfs.ha.automatic-failover.enabled</name><value>true</value></property>
+  {% endif %}
+
+  {% if with_kerberos | bool %}
+  
+  <property><name>dfs.http.policy</name><value>HTTPS_ONLY</value></property>
+  <property><name>dfs.encrypt.data.transfer</name><value>true</value></property>
+  <property><name>dfs.encrypt.data.transfer.cipher.suites</name><value>AES/CTR/NoPadding</value></property>
+  <property><name>dfs.encrypt.data.transfer.cipher.key.bitlength</name><value>256</value></property>
+  <property><name>dfs.client.https.need-auth</name><value>false</value></property>
+  <property><name>dfs.block.access.token.enable</name><value>true</value></property>
+  <property><name>dfs.data.transfer.protection</name><value>authentication</value></property>
+  <property><name>dfs.datanode.address</name><value>0.0.0.0:9866</value></property>
+  <property><name>dfs.datanode.http.address</name><value>0.0.0.0:9864</value></property>
+
+  <property><name>dfs.namenode.kerberos.principal</name><value>{{ hdfs_namenode_kerberos_principal }}</value></property>
+  <property><name>dfs.namenode.keytab.file</name><value>{{ hdfs_namenode_kerberos_keytab }}</value></property>
+
+  <property><name>dfs.datanode.kerberos.principal</name><value>{{ hdfs_datanode_kerberos_principal }}</value></property>
+  <property><name>dfs.datanode.keytab.file</name><value>{{ hdfs_datanode_kerberos_keytab }}</value></property>
+
+  <property><name>dfs.journalnode.kerberos.principal</name><value>{{ hdfs_journalnode_kerberos_principal }}</value></property>
+  <property><name>dfs.journalnode.keytab.file</name><value>{{ hdfs_journalnode_kerberos_keytab }}</value></property>
+
+  {% endif %}
+
+
+</configuration>

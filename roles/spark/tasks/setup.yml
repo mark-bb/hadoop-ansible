@@ -1,0 +1,82 @@
+---
+- name: Check if {{ spark_home }} exists
+  ansible.builtin.stat:
+    path: "{{ spark_home }}"
+  register: res
+
+# Install if not exists
+- block:
+  - name: Install spark distro
+    ansible.builtin.unarchive:
+      src: "{{ lookup('ansible.builtin.fileglob', 'files/distrib/spark-*.tgz') }}"
+      dest: "{{ spark_home_base }}"
+      owner: "root"
+      group: "root"
+  
+  - name: Get spark install directory name
+    ansible.builtin.shell:
+      cmd: "{{ 'ls -d ' ~ spark_home_base ~ '/spark-*' }}"
+    register: spark_install_dir
+  
+  - name: Check existing spark directories
+    ansible.builtin.assert:
+      that: (spark_install_dir.stdout_lines | length()) == 1
+      fail_msg: "{{ 'There must be the only spark installation in the ' ~ spark_home_base ~ ' directory' }}"
+  
+  - name: Create a relative softlink to the spark installation
+    ansible.builtin.file:
+      src: "{{ (spark_install_dir.stdout | ansible.builtin.split('/'))[-1] }}"
+      dest: "{{ spark_home }}"
+      state: link
+
+  when: not (res.stat.exists | bool)
+
+- name: Create softlinks needed
+  ansible.builtin.file:
+    src: "{{ item.src_dir ~ '/' ~ item.src_file }}"
+    dest: "{{ item.dest_dir ~ '/' ~ item.src_file }}"
+    state: link
+  with_items:
+    - { src_dir: "{{ hadoop_conf_dir }}", src_file: "core-site.xml", dest_dir: "{{ spark_conf_dir }}" }
+    - { src_dir: "{{ hadoop_conf_dir }}", src_file: "hdfs-site.xml", dest_dir: "{{ spark_conf_dir }}" }
+    - { src_dir: "{{ hive_conf_dir }}",   src_file: "hive-site.xml", dest_dir: "{{ spark_conf_dir }}" }
+
+- name: Create softlinks to PG jar
+  ansible.builtin.file:
+    src: "{{ item }}"
+    dest: "{{ spark_home ~ '/jars/'  ~ (item | basename) }}"
+    state: link
+  with_fileglob:
+    - "{{ hive_home ~ '/lib/postgresql-*' }}"
+
+- name: Create softlink to ozone fs jar
+  ansible.builtin.file:
+    src: "{{ item }}"
+    dest: "{{ spark_home ~ '/jars/' ~ (item | basename) }}"
+    state: link
+    force: true
+  with_fileglob:
+    - "{{ ozone_home ~ '/share/ozone/lib/ozone-filesystem-hadoop3-client-*.jar' }}"
+  when: with_ozone | bool
+  
+- name: Create Spark OS directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ hadoop_user}}"
+    group: "{{ hadoop_user}}"
+    state: directory
+  with_items:
+    - "{{ spark_log_dir_os }}"
+
+- block:
+  - name: Get kerberos TGT
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' kinit -kt ' ~ keytabs_path ~ '/spark.keytab spark/' ~ inventory_hostname }}"
+    when: with_kerberos | bool
+      
+  - name: "{{ 'Create Spark hadoop directory: ' ~ spark_log_dir_hadoop }}"
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hadoop fs -mkdir -p ' ~ spark_log_dir_hadoop }}"
+  
+  when: inventory_hostname == groups[spark_masters_group][0]
+

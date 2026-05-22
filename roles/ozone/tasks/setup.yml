@@ -1,0 +1,59 @@
+- name: Check if {{ ozone_home }} exists
+  ansible.builtin.stat:
+    path: "{{ ozone_home }}"
+  register: res
+
+# Install if not exists
+- block:
+  - name: Install ozone distro
+    ansible.builtin.unarchive:
+      src: "{{ lookup('ansible.builtin.fileglob', 'files/distrib/ozone-*.tar.gz') }}"
+      dest: "{{ ozone_home_base }}"
+      owner: "root"
+      group: "root"
+  
+  - name: Get ozone install directory name
+    ansible.builtin.shell:
+      cmd: "{{ 'ls -d ' ~ ozone_home_base ~ '/ozone-*' }}"
+    register: ozone_install_dir
+  
+  - name: Check existing ozone directories
+    ansible.builtin.assert:
+      that: (ozone_install_dir.stdout_lines | length()) == 1
+      fail_msg: "{{ 'There must be the only ozone installation in the ' ~ ozone_home_base ~ ' directory' }}"
+  
+  - name: Create a relative softlink to the ozone installation
+    ansible.builtin.file:
+      src: "{{ (ozone_install_dir.stdout | ansible.builtin.split('/'))[-1] }}"
+      dest: "{{ ozone_home }}"
+      state: link
+
+  - name: Create soft link to Ozone jar
+    ansible.builtin.file:
+      src: "{{ item }}"
+      dest: "{{ hadoop_home ~ '/share/hadoop/common/' ~ (item | basename) }}"
+      state: link
+      force: true
+    with_fileglob:
+      - "{{ ozone_home ~ '/share/ozone/lib/ozone-filesystem-hadoop3-*.jar' }}"
+    when:
+      - not item is search("client")
+
+  when: not (res.stat.exists | bool)
+
+- name: Create ozone directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ hadoop_user}}"
+    group: "{{ hadoop_user}}"
+    state: directory
+  with_items:
+    - "{{ ozone_data_dir }}"
+    - "{{ ozone_metadata_dir }}"
+    - "{{ ozone_log_dir }}"
+    
+- name: Set the workers file
+  ansible.builtin.copy:
+    content: "{{ groups[hadoop_datanodes_group] | join('\n') }}"
+    dest: "{{ hadoop_conf_dir ~ '/workers' }}"
+    

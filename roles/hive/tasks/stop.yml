@@ -1,0 +1,8 @@
+---
+- name: Stop all Hive services gracefully
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo ps -u ' ~ hive_user ~ ' -o pid= | xargs kill || true' }}"
+
+- name: Stop all Hive services hard
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo ps -u ' ~ hive_user ~ ' -o pid= | xargs kill -9 || true' }}"

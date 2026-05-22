@@ -1,0 +1,75 @@
+---
+- name: Check if {{ hbase_home }} exists
+  ansible.builtin.stat:
+    path: "{{ hbase_home }}"
+  register: res
+
+- name: Install Hbase if not exists
+  block:
+  - name: Install hbase distro
+    ansible.builtin.unarchive:
+      src: "{{ lookup('ansible.builtin.fileglob', 'files/distrib/hbase-*-bin.tar.gz') }}"
+      dest: "{{ hbase_home_base }}"
+      owner: "root"
+      group: "root"
+  
+  - name: Find inst dir
+    ansible.builtin.find:
+      paths: "{{ hbase_home_base }}"
+      patterns: "hbase-*"
+      file_type: directory
+    register: hbase_install_dir
+  
+  - name: Check existing hbase directories
+    ansible.builtin.assert:
+      that: hbase_install_dir.matched == 1
+      fail_msg: "{{ 'There must be the only hbase installation in the ' ~ hbase_home_base ~ ' directory' }}"
+  
+  - name: Create a relative softlink to the hbase installation
+    ansible.builtin.file:
+      src: "{{ hbase_install_dir.files[0].path }}"
+      dest: "{{ hbase_home }}"
+      state: link
+
+  when: not (res.stat.exists | bool)
+
+- name: "Find the BouncyCastle bcprov jar (https://hbase.apache.org/dependency-management.html)"
+  ansible.builtin.find:
+    paths: "{{ hbase_home ~ '/lib' }}"
+    patterns: "{{ hbase_file_bcprov }}"
+    file_type: file
+  register: hbase_file_bcprov_res
+  
+- name: Copy the BouncyCastle bcprov jar
+  ansible.builtin.copy:
+    src: "{{ lookup('ansible.builtin.fileglob', 'files/distrib/' ~ hbase_file_bcprov) }}"
+    dest: "{{ hbase_home ~ '/lib/' }}"
+  when: hbase_file_bcprov_res.matched == 0
+  
+- name: Find duplicate slf4j jar
+  ansible.builtin.find:
+    paths: "{{ hbase_home ~ '/lib/client-facing-thirdparty' }}"
+    patterns: "{{ hbase_file_slf4j }}"
+  register: hbase_file_slf4j_res
+
+- name: Delete duplicate slf4j jar
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ hbase_file_slf4j_res.files | map(attribute='path') }}"  
+  when: hbase_file_slf4j_res.matched == 1
+  
+# It doesn't work with Ozone unfortunately...
+- name: Create softlink to ozone fs jar
+  ansible.builtin.file:
+    src: "{{ item }}"
+    dest: "{{ hbase_home ~ '/lib/' ~ (item | basename) }}"
+    state: link
+    force: true
+  with_fileglob:
+    - "{{ ozone_home ~ '/share/ozone/lib/ozone-filesystem-hadoop3-*.jar' }}"
+  when:
+    - with_ozone | bool
+    - not item is search("client")
+    - False
+

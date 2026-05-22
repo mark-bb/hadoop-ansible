@@ -1,0 +1,39 @@
+- name: Stop YARN
+  ansible.builtin.include_tasks: stop.yml
+  when: not (yarn_config_only | bool)
+
+- name: Copy yarn env files
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: "mapred-site.xml.j2", dest: "{{ hadoop_conf_dir ~ '/mapred-site.xml' }}" }
+    - { src: "yarn-site.xml.j2",   dest: "{{ hadoop_conf_dir ~ '/yarn-site.xml' }}" }
+    - { src: "yarn_jaas.conf.j2",  dest: "{{ hadoop_conf_dir ~ '/yarn_jaas.conf' }}" }
+    - { src: "yarn-env.sh.j2",     dest: "{{ hadoop_conf_dir ~ '/yarn-env.sh' }}" }
+
+- block:
+  - name: Get kerberos TGT
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' kinit -kt ' ~ keytabs_path ~ '/RM.keytab RM/' ~ inventory_hostname }}"
+    when: with_kerberos | bool
+  
+  - name: "Create hadoop directories"
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hadoop fs -mkdir -p ' ~ item.path ~ ' || true' }}"
+    with_items:
+      - { when: not (with_zookeeper | bool), path: "{{ yarn_rmstore_dir_hadoop }}" }
+      - { when: True,                        path: "{{ yarn_timeline_active_dir }}" }
+      - { when: True,                        path: "{{ yarn_timeline_done_dir }}" }
+    when: item.when | bool
+
+  when: inventory_hostname == yarn_rm_hostname
+
+- name: Configure Timeline v2
+  ansible.builtin.include_tasks: config_v2.yml
+  when: yarn_with_tls_v20 | bool
+
+- name: Start YARN
+  ansible.builtin.include_tasks: start.yml
+  when: not (yarn_config_only | bool)
+

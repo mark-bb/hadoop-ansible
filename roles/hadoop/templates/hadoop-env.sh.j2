@@ -1,0 +1,30 @@
+export JAVA_HOME="{{ java_home }}"
+export HADOOP_INSTALL=${HADOOP_HOME}
+export HADOOP_MAPRED_HOME=${HADOOP_HOME}
+export HADOOP_COMMON_HOME=${HADOOP_HOME}
+export HADOOP_HDFS_HOME=${HADOOP_HOME}
+export HADOOP_YARN_HOME=${HADOOP_HOME}
+export HADOOP_COMMON_LIB_NATIVE_DIR=${HADOOP_HOME}/lib/native
+export HADOOP_OPTS="-Djava.library.path=${HADOOP_HOME}/lib/native"
+export HADOOP_LOG_DIR="{{ hadoop_log_dir }}"
+export HADOOP_OPTIONAL_TOOLS="hadoop-aws"
+{% if with_zookeeper %}
+export HDFS_ZKFC_OPTS="
+-Djavax.security.auth.useSubjectCredsOnly=false
+-Djava.security.auth.login.config={{ hadoop_conf_dir ~ '/hdfs_jaas.conf' }}
+-Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty
+-Dzookeeper.client.secure=true
+-Dzookeeper.ssl.keyStore.location={{ ssl_server_keystore_location }}
+-Dzookeeper.ssl.keyStore.type=JKS
+-Dzookeeper.ssl.keyStore.password={{ ssl_password }}
+-Dzookeeper.ssl.trustStore.location={{ ssl_server_truststore_location }}
+-Dzookeeper.ssl.trustStore.type=JKS
+-Dzookeeper.ssl.trustStore.password={{ ssl_password }}
+"
+{% endif %}
+{% if with_tez | bool %}
+export TEZ_HOME="{{ tez_home }}"
+export TEZ_JARS=${TEZ_HOME}
+export TEZ_CONF_DIR=${TEZ_HOME}/conf
+export HADOOP_CLASSPATH=${TEZ_CONF_DIR}:${TEZ_JARS}/*:${TEZ_JARS}/lib/*:${HADOOP_CLASSPATH}
+{% endif %}

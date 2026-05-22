@@ -1,0 +1,47 @@
+ozone_config_only: "yes"
+ozone_log_dir: "{{ hadoop_log_dir }}"
+ozone_data_dir: "/ozone/data/hdds"
+ozone_metadata_dir: "/ozone/data/metadata"
+ozone_dfs_replication_type: "RATIS"
+ozone_dfs_replication: 3
+# ozone_dfs_replication_type: "EC"
+# ozone_dfs_replication: "RS-3-2-1024k"
+ozone_with_spnego: "yes"
+ozone_with_ssl: "yes"
+
+ozone_recon_hostname: "{{ groups[hadoop_namenodes_group][0] }}"
+ozone_httpfs_hostname: "{{ groups[hadoop_namenodes_group][0] }}"
+ozone_s3gw_hostname: "{{ groups[hadoop_namenodes_group][0] }}"
+ozone_scm_primordial_node: "{{ groups[hadoop_namenodes_group][0] | regex_replace('[.].*', '') }}"
+ozone_scm_nodes: "{{ groups[hadoop_namenodes_group] | map('regex_replace', '[.].*', '') | join(',') }}"
+ozone_scm_addresses: "{{ groups[hadoop_namenodes_group] | map('regex_replace', '^([^.]+)(.*)$', '<property><name>ozone.scm.address.' ~ ozone_scmservice ~ '.\\1</name><value>\\1\\2</value></property>') | join('\n') }}"
+ozone_om_nodes: "{{ groups[hadoop_namenodes_group] | map('regex_replace', '[.].*', '') | join(',') }}"
+ozone_om_addresses: "{{ groups[hadoop_namenodes_group] | map('regex_replace', '^([^.]+)(.*)$', '<property><name>ozone.om.address.' ~ ozone_omservice ~ '.\\1</name><value>\\1\\2</value></property>') | join('\n') }}"
+ozone_om_http_addresses: "{{ groups[hadoop_namenodes_group] | map('regex_replace', '^([^.]+)(.*)$', '<property><name>ozone.om.http-address.' ~ ozone_omservice ~ '.\\1</name><value>http://\\1\\2:9874</value></property>') | join('\n') }}"
+ozone_om_https_addresses: "{{ groups[hadoop_namenodes_group] | map('regex_replace', '^([^.]+)(.*)$', '<property><name>ozone.om.https-address.' ~ ozone_omservice ~ '.\\1</name><value>https://\\1\\2:9875</value></property>') | join('\n') }}"
+
+ozone_scm_kerberos_principal: "{{ 'SCM/_HOST@' ~ kerberos_realm }}"
+ozone_scm_kerberos_keytab: "{{ keytabs_path ~ '/SCM.keytab' }}"
+ozone_scm_http_kerberos_principal: "{{ 'HTTP/_HOST@' ~ kerberos_realm }}"
+ozone_scm_http_kerberos_keytab: "{{ keytabs_path ~ '/HTTP.keytab' }}"
+
+ozone_om_kerberos_principal: "{{ 'OM/_HOST@' ~ kerberos_realm }}"
+ozone_om_kerberos_keytab: "{{ keytabs_path ~ '/OM.keytab' }}"
+ozone_om_http_kerberos_principal: "{{ 'HTTP/_HOST@' ~ kerberos_realm }}"
+ozone_om_http_kerberos_keytab: "{{ keytabs_path ~ '/HTTP.keytab' }}"
+
+ozone_s3g_kerberos_principal: "{{ 'S3G/_HOST@' ~ kerberos_realm }}"
+ozone_s3g_kerberos_keytab: "{{ keytabs_path ~ '/S3G.keytab' }}"
+ozone_s3g_http_kerberos_principal: "{{ 'HTTP/_HOST@' ~ kerberos_realm }}"
+ozone_s3g_http_kerberos_keytab: "{{ keytabs_path ~ '/HTTP.keytab' }}"
+
+ozone_recon_kerberos_principal: "{{ 'RECON/_HOST@' ~ kerberos_realm }}"
+ozone_recon_kerberos_keytab: "{{ keytabs_path ~ '/RECON.keytab' }}"
+ozone_recon_http_kerberos_principal: "{{ 'HTTP/_HOST@' ~ kerberos_realm }}"
+ozone_recon_http_kerberos_keytab: "{{ keytabs_path ~ '/HTTP.keytab' }}"
+
+ozone_dn_kerberos_principal: "{{ 'DN/_HOST@' ~ kerberos_realm }}"
+ozone_dn_kerberos_keytab: "{{ keytabs_path ~ '/DN.keytab' }}"
+ozone_dn_http_kerberos_principal: "{{ 'HTTP/_HOST@' ~ kerberos_realm }}"
+ozone_dn_http_kerberos_keytab: "{{ keytabs_path ~ '/HTTP.keytab' }}"
+

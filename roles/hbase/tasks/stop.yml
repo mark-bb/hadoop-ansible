@@ -1,0 +1,10 @@
+- name: Find the master
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep \"foreground_start master\\$\" || true' }}"
+  register: res
+  
+- name: Stop Hbase if it's running
+  ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' stop-hbase.sh' }}"
+  when:
+    - (res.stdout_lines | length()) != 0

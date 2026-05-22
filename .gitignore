@@ -1,0 +1,11 @@
+*.*gz
+machines*.txt
+*.keytab
+*.jks
+*.jar
+*.log*
+*.p12
+*.cer
+*.pem
+test_files/*
+public_keys/*

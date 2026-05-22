@@ -1,0 +1,10 @@
+- name: Check if KMSWebServer is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep -F KMSWebServer || true' }}"
+  register: res
+
+- name: Stop KMSWebServer if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hadoop --daemon stop kms' }}"
+  when: (res.stdout_lines | length()) != 0
+

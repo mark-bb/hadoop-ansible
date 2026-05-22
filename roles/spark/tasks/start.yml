@@ -1,0 +1,33 @@
+--- 
+- block:    
+  - name: Start Spark History Server
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' start-history-server.sh &>/tmp/shs.log </dev/null &' }}"
+    
+  - name: Waiting for Spark History Server
+    ansible.builtin.wait_for:
+      port: 18080
+      delay: 5
+      timeout: 60
+      msg: "Spark History Server is not accessible"
+
+  when: 
+    - inventory_hostname == spark_history_hostname
+    
+- block:    
+  - name: Start Spark Standalone Server
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ' ~ spark_home ~ '/sbin/start-all.sh' }}"
+    
+  - name: Waiting for Spark Standalone Server
+    ansible.builtin.wait_for:
+      host: "{{ inventory_hostname }}"
+      port: 7077
+      delay: 5
+      timeout: 60
+      msg: "Spark Standalone Server is not accessible"
+
+  when: 
+    - inventory_hostname == spark_master_hostname
+    - spark_with_cluster | bool
+

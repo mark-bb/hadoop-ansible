@@ -1,0 +1,35 @@
+---
+- name: Check the {{ hadoop_namenodes_group }} group presence
+  ansible.builtin.assert:
+    that: hadoop_namenodes_group in groups
+    fail_msg: "There is no '{{ hadoop_namenodes_group }}' group in the inventory"
+
+- name: Check the {{ hadoop_datanodes_group }} group  presence
+  ansible.builtin.assert:
+    that: hadoop_datanodes_group in groups
+    fail_msg: "There is no '{{ hadoop_datanodes_group }}' group in the inventory"
+
+- name: A number of members in the {{ hadoop_namenodes_group }} group check
+  ansible.builtin.assert:
+    that:
+      - (groups[hadoop_namenodes_group] | length()) > 1
+      - ((groups[hadoop_namenodes_group] | length()) % 2) != 0
+    fail_msg: "Number of NameNode hosts must be > 1 and odd"
+  
+- name: Check if one of HDFS or Ozone is selected
+  ansible.builtin.assert:
+    that:
+      - ( (with_hdfs | bool | int ) + (with_ozone | bool | int ) ) > 0
+    fail_msg: "You must go either with HDFS or Ozone"
+  
+- name: "{{ 'Checking ' ~ java_home }}"
+  ansible.builtin.stat:
+    path: "{{ java_home ~ '/bin/java' }}"
+  register: res
+
+- name: Check if one and only one of HDFS or Ozone is selected
+  ansible.builtin.assert:
+    that:
+      - res.stat.exists
+    fail_msg: "{{ 'No such a file: ' ~ java_home ~ '/bin/java' }}"
+    

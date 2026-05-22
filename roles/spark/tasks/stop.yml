@@ -1,0 +1,23 @@
+--- 
+- name: Check if Spark History Server is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep -F .HistoryServer || true' }}"
+  register: res
+  
+- name: Stop Spark History Server if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' stop-history-server.sh' }}"
+  when:
+    - (res.stdout_lines | length()) != 0
+
+- name: Check if Spark Standalone Cluster is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep -F .Master || true' }}"
+  register: res
+  
+- name: Stop Standalone Cluster if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ' ~ spark_home ~ '/sbin/stop-all.sh' }}"
+  when:
+    - (res.stdout_lines | length()) != 0
+    

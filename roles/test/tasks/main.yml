@@ -1,0 +1,4 @@
+---
+- name: Test Hbase 
+  ansible.builtin.import_tasks: test_select.yml
+

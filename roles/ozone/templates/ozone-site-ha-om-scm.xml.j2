@@ -1,0 +1,127 @@
+<configuration>
+<property><name>ozone.om.address</name><value>0.0.0.0:9862</value></property>
+<property><name>ozone.metadata.dirs</name><value>{{ ozone_metadata_dir ~ '/ozone-metadata' }}</value></property>
+<property><name>ozone.scm.client.address</name><value>0.0.0.0:9860</value></property>
+<property><name>ozone.scm.names</name><value>{{ groups[hadoop_namenodes_group] | join(',') }}</value></property>
+
+<!-- <property><name>dfs.container.ratis.datastream.enabled</name><value>true</value></property> -->
+<!-- <property><name>dfs.container.ratis.datanode.storage.dir</name><value>{{ ozone_metadata_dir ~ '/datanode/ratis' }}</value></property> -->
+
+<property><name>hdds.container.report.interval</name><value>60s</value></property>
+<property><name>hdds.scm.replication.over.replicated.interval</name><value>5s</value></property>
+<property><name>hdds.scm.replication.under.replicated.interval</name><value>5s</value></property>
+<property><name>hdds.scm.replication.thread.interval</name><value>15s</value></property>
+<property><name>hdds.scm.wait.time.after.safemode.exit</name><value>30s</value></property>
+<property><name>hdds.scm.safemode.min.datanode</name><value>1</value></property>
+
+<property><name>hdds.scmclient.max.retry.timeout</name><value>30s</value></property>
+<property><name>hdds.heartbeat.interval</name><value>5s</value></property>
+<property><name>hdds.datanode.volume.min.free.space</name><value>100MB</value></property>
+<property><name>hdds.datanode.dir</name><value>{{ ozone_data_dir }}</value></property>
+<!-- Seems that "dfs.container.ratis.datanode.storage.dir" is used if set -->
+<property><name>hdds.container.ratis.datanode.storage.dir</name><value>{{ ozone_metadata_dir ~ '/datanode/ratis' }}</value></property>
+<property><name>hdds.prometheus.endpoint.enabled</name><value>true</value></property>
+
+<property><name>ozone.recon.om.snapshot.task.interval.delay</name><value>1m</value></property>
+<property><name>ozone.recon.https-address</name><value>0.0.0.0:9889</value></property>
+<property><name>ozone.recon.http-address</name><value>0.0.0.0:9888</value></property>
+<property><name>ozone.recon.address</name><value>{{ ozone_recon_hostname }}:9891</value></property>
+<property><name>ozone.recon.db.dir</name><value>{{ ozone_metadata_dir ~ '/recon/data' }}</value></property>
+<property><name>ozone.recon.om.db.dir</name><value>{{ ozone_metadata_dir ~ '/recon/om/data' }}</value></property>
+<property><name>ozone.recon.scm.db.dir</name><value>{{ ozone_metadata_dir ~ '/recon/scm/data' }}</value></property>
+
+<property><name>ozone.scm.dead.node.interval</name><value>45s</value></property>
+<property><name>ozone.scm.container.size</name><value>5GB</value></property>
+<property><name>ozone.scm.http-address</name><value>0.0.0.0:9876</value></property>
+<property><name>ozone.scm.pipeline.owner.container.count</name><value>1</value></property>
+<property><name>ozone.scm.stale.node.interval</name><value>30s</value></property>
+<property><name>ozone.scm.pipeline.creation.interval</name><value>30s</value></property>
+<property><name>ozone.scm.close.container.wait.duration</name><value>5s</value></property>
+<property><name>ozone.scm.block.size</name><value>256MB</value></property>
+<property><name>ozone.scm.datanode.ratis.volume.free-space.min</name><value>10MB</value></property>
+<property><name>ozone.scm.datanode.id.dir</name><value>{{ ozone_metadata_dir }}</value></property>
+<property><name>ozone.scm.db.dirs</name><value>{{ ozone_metadata_dir ~ '/scm/data' }}</value></property>
+<property><name>ozone.scm.service.ids</name><value>{{ ozone_scmservice }}</value></property>
+<property><name>ozone.scm.ratis.enable</name><value>true</value></property>
+<property><name>ozone.scm.ha.ratis.storage.dir</name><value>{{ ozone_metadata_dir ~ '/scm/ratis' }}</value></property>
+<property><name>ozone.scm.nodes.{{ ozone_scmservice }}</name><value>{{ ozone_scm_nodes }}</value></property>
+{{ ozone_scm_addresses }}
+<property><name>ozone.scm.primordial.node.id</name><value>{{ ozone_scm_primordial_node }}</value></property>
+
+<property><name>ozone.filesystem.snapshot.enabled</name><value>true</value></property>
+<property><name>ozone.server.default.replication.type</name><value>{{ ozone_dfs_replication_type }}</value></property>
+<property><name>ozone.server.default.replication</name><value>{{ ozone_dfs_replication }}</value></property>
+<property><name>ozone.datanode.pipeline.limit</name><value>5</value></property>
+
+<property><name>ozone.om.http-address</name><value>0.0.0.0:9874</value></property>
+<property><name>ozone.om.s3.grpc.server_enabled</name><value>true</value></property>
+<property><name>ozone.om.db.dirs</name><value>{{ ozone_metadata_dir ~ '/om/data' }}</value></property>
+<property><name>ozone.om.ratis.storage.dir</name><value>{{ ozone_metadata_dir ~ '/om/ratis' }}</value></property>
+<property><name>ozone.om.ratis.enable</name><value>true</value></property>
+<property><name>ozone.om.service.ids</name><value>{{ ozone_omservice }}</value></property>
+<property><name>ozone.om.internal.service.id</name><value>{{ ozone_omservice }}</value></property>
+<property><name>ozone.om.nodes.{{ ozone_omservice }}</name><value>{{ ozone_om_nodes }}</value></property>
+{{ ozone_om_addresses }}
+{{ ozone_om_http_addresses }}
+
+{% if with_kerberos | bool %}
+
+<property><name>ozone.security.enabled</name><value>true</value></property>
+
+<property><name>hdds.scm.kerberos.keytab.file</name><value>{{ ozone_scm_kerberos_keytab }}</value></property>
+<property><name>hdds.scm.kerberos.principal</name><value>{{ ozone_scm_kerberos_principal }}</value></property>
+
+<property><name>ozone.om.kerberos.keytab.file</name><value>{{ ozone_om_kerberos_keytab }}</value></property>
+<property><name>ozone.om.kerberos.principal</name><value>{{ ozone_om_kerberos_principal }}</value></property>
+
+<property><name>ozone.s3g.kerberos.keytab.file</name><value>{{ ozone_s3g_kerberos_keytab }}</value></property>
+<property><name>ozone.s3g.kerberos.principal</name><value>{{ ozone_s3g_kerberos_principal }}</value></property>
+
+<property><name>ozone.recon.kerberos.keytab.file</name><value>{{ ozone_recon_kerberos_keytab }}</value></property>
+<property><name>ozone.recon.kerberos.principal</name><value>{{ ozone_recon_kerberos_principal }}</value></property>
+
+<property><name>hdds.datanode.kerberos.keytab.file</name><value>{{ ozone_dn_kerberos_keytab }}</value></property>
+<property><name>hdds.datanode.kerberos.principal</name><value>{{ ozone_dn_kerberos_principal }}</value></property>
+
+<property><name>ozone.acl.enabled</name><value>true</value></property>
+<property><name>ozone.acl.authorizer.class</name><value>org.apache.hadoop.ozone.security.acl.OzoneNativeAuthorizer</value></property>
+
+{% if ozone_with_spnego | bool %}
+
+<property><name>ozone.administrators.groups</name><value>{{ hadoop_user }}</value></property>
+
+<property><name>ozone.security.http.kerberos.enabled</name><value>true</value></property>
+<property><name>ozone.http.filter.initializers</name><value>org.apache.hadoop.security.AuthenticationFilterInitializer</value></property>
+
+<property><name>hdds.scm.http.auth.type</name><value>kerberos</value></property>
+<property><name>hdds.scm.http.auth.kerberos.keytab</name><value>{{ ozone_scm_http_kerberos_keytab }}</value></property>
+<property><name>hdds.scm.http.auth.kerberos.principal</name><value>{{ ozone_scm_http_kerberos_principal }}</value></property>
+
+<property><name>ozone.om.http.auth.type</name><value>kerberos</value></property>
+<property><name>ozone.om.http.auth.kerberos.keytab</name><value>{{ ozone_om_http_kerberos_keytab }}</value></property>
+<property><name>ozone.om.http.auth.kerberos.principal</name><value>{{ ozone_om_http_kerberos_principal }}</value></property>
+
+<property><name>ozone.s3g.http.auth.type</name><value>kerberos</value></property>
+<property><name>ozone.s3g.http.auth.kerberos.keytab</name><value>{{ ozone_s3g_http_kerberos_keytab }}</value></property>
+<property><name>ozone.s3g.http.auth.kerberos.principal</name><value>{{ ozone_s3g_http_kerberos_principal }}</value></property>
+
+<property><name>ozone.recon.http.auth.type</name><value>kerberos</value></property>
+<property><name>ozone.recon.http.auth.kerberos.keytab</name><value>{{ ozone_recon_http_kerberos_keytab }}</value></property>
+<property><name>ozone.recon.http.auth.kerberos.principal</name><value>{{ ozone_recon_http_kerberos_principal }}</value></property>
+
+<property><name>hdds.datanode.http.auth.type</name><value>kerberos</value></property>
+<property><name>hdds.datanode.http.auth.kerberos.keytab</name><value>{{ ozone_dn_http_kerberos_keytab }}</value></property>
+<property><name>hdds.datanode.http.auth.kerberos.principal</name><value>{{ ozone_dn_http_kerberos_principal }}</value></property>
+
+{% endif %}
+
+{% endif %}
+
+{% if ozone_with_ssl | bool %}
+<!-- <property><name>ozone.http.policy</name><value>HTTP_AND_HTTPS</value></property> -->
+<property><name>ozone.http.policy</name><value>HTTPS_ONLY</value></property>
+<property><name>ozone.om.https-address</name><value>0.0.0.0:9875</value></property>
+{{ ozone_om_https_addresses }}
+{% endif %}
+
+</configuration>

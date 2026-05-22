@@ -1,0 +1,84 @@
+---
+- name: Create hdfs directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ hadoop_user}}"
+    group: "{{ hadoop_user}}"
+    state: directory
+  with_items:
+    - "{{ hdfs_dfs_namenode_dir }}"
+    - "{{ hdfs_dfs_datanode_dir }}"
+    - "{{ hdfs_dfs_journalnode_dir }}"
+
+- block:
+  - name: Get kerberos TGT
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' kinit -kt ' ~ keytabs_path ~ '/NN.keytab NN/' ~ inventory_hostname }}"
+    when: with_kerberos | bool
+  
+  - name: Format ZK node
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hdfs zkfc -D \"fs.defaultFS=hdfs://' ~ hdfs_nameservice ~ '/\" -formatZK -nonInteractive' }}"
+    when: with_zookeeper | bool
+
+  when: inventory_hostname == groups[hadoop_namenodes_group][0]
+
+- block:
+  - name: Check if Journal Node is running
+    ansible.builtin.shell:
+      cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep JournalNode || true' }}"
+    register: res
+    
+  - ansible.builtin.debug:
+      msg: "{{ res.stdout_lines | length() }}" 
+  
+  - name: Start Journal Nodes if it's not running
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' hdfs --daemon start journalnode &>/tmp/jn-start.out </dev/null &' }}"
+    when:
+      - (res.stdout_lines | length()) == 0
+      
+  - name: Waiting for JournalNode
+    ansible.builtin.wait_for:
+      port: 8485
+      delay: 10
+      timeout: 60
+      msg: "JournalNode is not accessible"
+
+  when: inventory_hostname in groups[hadoop_namenodes_group]
+
+- block:
+  - name: Format the 1-st NameNode
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hdfs namenode -format -nonInteractive &>/tmp/nn-format.out </dev/null || true' }}"
+      
+  - name: Initialize shared edits
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hdfs namenode -initializeSharedEdits -nonInteractive &>/tmp/nn-init-se.out </dev/null || true' }}"
+  
+  - name: Start HDFS
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' start-dfs.sh &>/tmp/start-dfs-init.out </dev/null  &' }}"
+
+  - name: Waiting for NameNode 1-st
+    ansible.builtin.wait_for:
+      host: "{{ ansible_facts.default_ipv4.address }}"
+      port: 8020
+      delay: 10
+      timeout: 60
+      msg: "NameNode is not accessible"
+
+  when: inventory_hostname == groups[hadoop_namenodes_group][0]
+
+- name: Bootstrap other NameNodes
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hdfs namenode -bootstrapStandby -nonInteractive -force &>/tmp/nn-bootstrap.out </dev/null || true' }}"
+  when:
+    - inventory_hostname != groups[hadoop_namenodes_group][0]
+    - inventory_hostname in groups[hadoop_namenodes_group]
+
+- name: Stop HDFS
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' stop-dfs.sh &>/tmp/stop-dfs-init.out </dev/null' }}"
+  when: inventory_hostname == groups[hadoop_namenodes_group][0]
+

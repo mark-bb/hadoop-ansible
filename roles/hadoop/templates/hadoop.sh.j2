@@ -1,0 +1,11 @@
+export HADOOP_HOME="{{ hadoop_home }}"
+export PATH=${PATH}:${HADOOP_HOME}/sbin:${HADOOP_HOME}/bin
+export HADOOP_USER_NAME={{ hadoop_user }}
+# These 2 variables are used by Spark
+export HADOOP_CONF_DIR="{{ hadoop_conf_dir }}"
+export LD_LIBRARY_PATH="${HADOOP_HOME}/lib/native:${LD_LIBRARY_PATH}"
+{% if with_tez | bool %}
+export TEZ_HOME="{{ tez_home }}"
+export TEZ_JARS=${TEZ_HOME}
+export TEZ_CONF_DIR=${TEZ_HOME}/conf
+{% endif %}

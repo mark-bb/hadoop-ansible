@@ -1,0 +1,16 @@
+---
+- name: Check if DFSZKFailoverController is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep -F DFSZKFailoverController || true' }}"
+  register: res
+
+- name: Stop DFSZKFailoverController if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hdfs --daemon stop zkfc' }}"
+  when: (res.stdout_lines | length()) != 0
+
+- name: Stop HDFS
+  ansible.builtin.shell:
+    cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' stop-dfs.sh >/dev/null 2>&1 </dev/null &' }}"
+  when:
+    - inventory_hostname == groups[hadoop_namenodes_group][0]

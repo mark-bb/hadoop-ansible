@@ -1,0 +1,35 @@
+---
+- block:
+  - name: Start HDFS
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' start-dfs.sh &>/tmp/start-dfs.out </dev/null &' }}"
+
+  - name: Waiting for NameNode
+    ansible.builtin.wait_for:
+      host: "{{ ansible_facts.default_ipv4.address }}"
+      port: 8020
+      delay: 10
+      timeout: 60
+      msg: "NameNode is not accessible"
+
+  - block:
+    - name: Get kerberos TGT
+      ansible.builtin.shell:
+        cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' kinit -kt ' ~ keytabs_path ~ '/NN.keytab NN/' ~ inventory_hostname }}"
+      when: with_kerberos | bool
+    
+    - name: Waiting for safe mode exit
+      ansible.builtin.shell:
+        cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hdfs dfsadmin ' ~ ' -D \"fs.defaultFS=hdfs://' ~ hdfs_nameservice ~ '/\" -safemode get | grep -c \"^Safe mode is ON\" || true' }}"
+      register: res
+      until: (res.stdout | default("-1", true) | int) == 0
+      retries: 30
+      delay: 10
+    
+    - name: Select Primary NameNode
+      ansible.builtin.shell:
+        cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hdfs haadmin -ns ' ~ hdfs_nameservice ~ ' -transitionToActive ' ~ inventory_hostname_short }}"
+    when: not (with_zookeeper | bool)
+
+  when:
+    - inventory_hostname == groups[hadoop_namenodes_group][0]

@@ -1,0 +1,62 @@
+---
+- name: Create {{ hadoop_user }} user
+  ansible.builtin.user:
+    name: "{{ hadoop_user }}"
+    comment: "Hadoop user"
+    shell: "/bin/bash"
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+
+- name: Set password-less ssh for {{ hadoop_user }} on all inventory hosts 
+  block:
+    
+    - name: Get user info
+      ansible.builtin.getent:
+        split: ":"
+        database: passwd
+        key: "{{ hadoop_user }}"
+
+    - ansible.builtin.set_fact:
+        hadoop_user_home: "{{ getent_passwd[hadoop_user][4] }}"
+
+    - name: Set SSH options
+      #become_user: "{{ hadoop_user }}"
+      #vars:
+      #  ssh_opts: |
+      #    Host *
+      #        StrictHostKeyChecking no
+      #        UserKnownHostsFile=/dev/null
+      #        LogLevel ERROR
+      ansible.builtin.copy:
+        owner: "{{ hadoop_user }}"
+        group: "{{ hadoop_user }}"
+        dest: "{{ hadoop_user_home }}/.ssh/config"
+        content: |
+          Host *
+              StrictHostKeyChecking no
+              UserKnownHostsFile=/dev/null
+              LogLevel ERROR
+
+    #- ansible.builtin.debug: msg="{{ hadoop_user_home }}"
+
+    #- name: Get public key
+    #  ansible.builtin.shell: cat "{{ hadoop_user_home }}/.ssh/id_rsa.pub"
+    #  register: read_key
+
+    #- name: Prints out public key
+    #  ansible.builtin.debug: msg="{{ read_key.stdout_lines }}"
+
+    - name: Public keys collection
+      ansible.builtin.fetch:
+        src: "{{ hadoop_user_home }}/.ssh/id_rsa.pub"
+        dest: "{{ public_keys_dir }}/{{ inventory_hostname }}"
+        flat: yes
+
+    - name: Copy authorized keys
+      ansible.posix.authorized_key:
+        user: "{{ hadoop_user }}"
+        state: present
+        key: "{{ lookup('file', '{{ item }}')}}"
+      with_fileglob: "{{ public_keys_dir }}/*"
+

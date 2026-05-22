@@ -1,0 +1,14 @@
+- block:
+  - name: Start KMSWebServer
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hadoop --daemon start kms' }}"
+  
+  - name: Waiting for KMSWebServer
+    ansible.builtin.wait_for:
+      port: 9600
+      delay: 5
+      timeout: 120
+      msg: "KMSWebServer is not accessible"
+  
+  when: inventory_hostname == kms_hostname
+

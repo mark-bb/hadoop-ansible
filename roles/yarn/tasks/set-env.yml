@@ -1,0 +1,2 @@
+- name: Ozone fs jar
+  ansible.builtin.include_tasks: ../../common/tasks/set-ozone_fs_jars.yml

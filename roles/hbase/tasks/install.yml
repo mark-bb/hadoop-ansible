@@ -1,0 +1,6 @@
+- name: Setup Hbase
+  ansible.builtin.include_tasks: setup.yml
+  
+- name: Config Hbase
+  ansible.builtin.include_tasks: config.yml
+  

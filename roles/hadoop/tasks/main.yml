@@ -1,0 +1,13 @@
+---
+- name: Install hadoop
+  ansible.builtin.import_tasks: install.yml
+  when: play_action == "install"
+
+- name: Start Hadoop services
+  ansible.builtin.import_tasks: start.yml
+  when: play_action == "start"
+
+- name: Stop Hadoop services
+  ansible.builtin.import_tasks: stop.yml
+  when: play_action == "stop"
+

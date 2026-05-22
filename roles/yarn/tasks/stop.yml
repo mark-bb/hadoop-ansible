@@ -1,0 +1,41 @@
+---
+- name: Check if MR History Server is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep JobHistoryServer || true' }}"
+  register: res
+  
+- name: Stop MR History Server if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' mapred --daemon stop historyserver' }}"
+  when: (res.stdout_lines | length()) != 0
+
+- name: Check if Timeline Server is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep ApplicationHistoryServer || true' }}"
+  register: res
+  
+- name: Stop Timeline Server if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' yarn --daemon stop timelineserver >/dev/null 2>&1 </dev/null &' }}"
+  when: (res.stdout_lines | length()) != 0
+
+- name: Check if Timeline Reader is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep TimelineReaderServer || true' }}"
+  register: res
+  
+- name: Stop Timeline Reader if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' yarn --daemon stop timelinereader >/dev/null 2>&1 </dev/null &' }}"
+  when: (res.stdout_lines | length()) != 0
+
+- name: Check if Yarn RM is running
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep ResourceManager || true' }}"
+  register: res
+
+- name: Stop Yarn RM if it's running
+  ansible.builtin.shell:
+    cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' stop-yarn.sh >/dev/null 2>&1 </dev/null &' }}"
+  when: (res.stdout_lines | length()) != 0
+

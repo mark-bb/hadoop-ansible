@@ -1,0 +1,99 @@
+---
+
+- name: Start 1-st SCM
+  block:
+  - name: Init SCM
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone scm --init >/tmp/scm.log 2>&1' }}"
+    
+  - name: Bootstrap SCM
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone scm --bootstrap >>/tmp/scm.log 2>&1' }}"
+
+  - name: Start SCM
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' ozone --daemon start scm >/tmp/scm.log 2>&1 </dev/null &' }}"
+
+  when: 
+    - inventory_hostname == groups[hadoop_namenodes_group][0]
+
+- name: Start other SCMs
+  block:
+  - name: Init SCM other
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone scm --init >/tmp/scm.log 2>&1' }}"
+    
+  - name: Bootstrap SCM other
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone scm --bootstrap >>/tmp/scm.log 2>&1' }}"
+
+  - name: Start SCM other
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' ozone --daemon start scm >/tmp/scm.log 2>&1 </dev/null &' }}"
+
+  when: 
+    - inventory_hostname != groups[hadoop_namenodes_group][0]
+    - inventory_hostname in groups[hadoop_namenodes_group]
+
+- name: Waiting for SCM after init
+  ansible.builtin.wait_for:
+    port: 9860
+    delay: 5
+    timeout: 120
+    msg: "SCM is not accessible after init"
+  when: 
+    - inventory_hostname in groups[hadoop_namenodes_group]
+
+
+- name: Start 1-st OM
+  block:
+  - name: Init 1-st OM
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone om --init' }}"
+    
+  - name: Start 1-st OM
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' ozone --daemon start om >/tmp/om.log 2>&1 </dev/null &' }}"
+
+  - name: Waiting for OM after init
+    ansible.builtin.wait_for:
+      host: "{{ ansible_facts.default_ipv4.address }}"
+      port: 9862
+      delay: 5
+      timeout: 120
+      msg: "OM is not accessible after init"
+
+  when: 
+    - inventory_hostname == groups[hadoop_namenodes_group][0]
+
+- name: Bootstrap other OM
+  block:
+  - name: Bootstrap other OM
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' ozone om --bootstrap >/tmp/om.log 2>&1 </dev/null &' }}"
+      
+  - name: Waiting for OM
+    ansible.builtin.wait_for:
+      host: "{{ ansible_facts.default_ipv4.address }}"
+      port: 9862
+      delay: 5
+      timeout: 120
+      msg: "OM is not accessible after bootstrap"
+
+  when: 
+    - inventory_hostname != groups[hadoop_namenodes_group][0]
+    - inventory_hostname in groups[hadoop_namenodes_group]
+    
+- name: Stop Ozone after bootstrap
+  block:
+  - name: Stop OM after bootstrap
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone --daemon stop om' }}"
+  
+  - name: Stop SCM after bootstrap
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' ozone --daemon stop scm' }}"
+
+  when: 
+    - inventory_hostname in groups[hadoop_namenodes_group]
+

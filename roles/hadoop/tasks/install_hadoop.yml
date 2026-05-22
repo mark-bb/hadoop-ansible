@@ -1,0 +1,31 @@
+- name: Check if {{ hadoop_home }} exists
+  ansible.builtin.stat:
+    path: "{{ hadoop_home }}"
+  register: res
+
+- name: Install hadoop if not exists
+  block:
+  - name: Install hadoop distro
+    ansible.builtin.unarchive:
+      src: "{{ lookup('ansible.builtin.fileglob', 'files/distrib/hadoop-*.tar.gz') }}"
+      dest: "{{ hadoop_home_base }}"
+      owner: "root"
+      group: "root"
+  
+  - name: Get hadoop install directory name
+    ansible.builtin.shell:
+      cmd: "{{ 'ls -d ' ~ hadoop_home_base ~ '/hadoop-*' }}"
+    register: hadoop_install_dir
+  
+  - name: Check existing hadoop directories
+    ansible.builtin.assert:
+      that: (hadoop_install_dir.stdout_lines | length() | int) == 1
+      fail_msg: "{{ 'There must be the only hadoop installation in the ' ~ hadoop_home_base ~ ' directory' }}"
+  
+  - name: Create a relative softlink to the hadoop installation
+    ansible.builtin.file:
+      src: "{{ (hadoop_install_dir.stdout | ansible.builtin.split('/'))[-1] }}"
+      dest: "{{ hadoop_home }}"
+      state: link
+
+  when: not (res.stat.exists | bool)

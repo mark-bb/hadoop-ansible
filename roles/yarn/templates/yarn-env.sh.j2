@@ -1,0 +1,17 @@
+export HADOOP_LOG_DIR="{{ hadoop_log_dir }}"
+{% if with_zookeeper %}
+export HADOOP_OPTS="${HADOOP_OPTS}
+-Djava.library.path={{ hadoop_home }}/lib/native
+-Djavax.security.auth.useSubjectCredsOnly=false
+-Djava.security.auth.login.config={{ hadoop_conf_dir ~ '/yarn_jaas.conf' }}
+-Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty
+-Dzookeeper.client.secure=true
+-Dzookeeper.ssl.keyStore.location={{ ssl_server_keystore_location }}
+-Dzookeeper.ssl.keyStore.type=JKS
+-Dzookeeper.ssl.keyStore.password={{ ssl_password }}
+-Dzookeeper.ssl.trustStore.location={{ ssl_server_truststore_location }}
+-Dzookeeper.ssl.trustStore.type=JKS
+-Dzookeeper.ssl.trustStore.password={{ ssl_password }}
+"
+{% endif %}
+

@@ -1,0 +1,10 @@
+# HELP ozone_bucket_used_bytes usedBytes bucket metric
+# TYPE ozone_bucket_used_bytes gauge
+ozone_bucket_used_bytes{volume="apps",bucket="tez"} 283325697
+ozone_bucket_used_bytes{volume="tmp",bucket="0238775c7bd96e2eab98038afe0c4279"} 131570835
+ozone_bucket_used_bytes{volume="user",bucket="hadoop"} 256925829
+ozone_bucket_used_bytes{volume="user",bucket="hive"} 216
+ozone_bucket_used_bytes{volume="user",bucket="mbarinstein"} 0
+ozone_bucket_used_bytes{volume="vol1",bucket="bucket1"} 34006047
+ozone_bucket_used_bytes{volume="vol1",bucket="spark-jars"} 1240103124
+ozone_bucket_used_bytes{volume="vol1",bucket="zone"} 480

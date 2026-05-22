@@ -1,0 +1,19 @@
+play_action: "install"
+hbase_config_only: "no"
+
+hbase_home_base: "/opt"
+hbase_home: "{{ hbase_home_base ~ '/hbase' }}"
+hbase_conf_dir: "{{ hbase_home ~ '/conf' }}"
+hbase_profile: "/etc/profile.d/hbase.sh"
+hbase_rootdir: "{{ 'hdfs://' ~ hdfs_nameservice ~ '/user/' ~ hadoop_user ~ '/hbase' }}"
+
+hbase_profile: "/etc/profile.d/hbase.sh"
+
+hbase_kerberos_principal: "{{ 'hbase/_HOST@' ~ kerberos_realm }}"
+hbase_kerberos_keytab: "{{ keytabs_path ~ '/hbase.keytab' }}"
+hbase_spnego_principal: "{{ 'HTTP/_HOST@' ~ kerberos_realm }}"
+hbase_spnego_keytab: "{{ keytabs_path ~ '/HTTP.keytab' }}"
+
+hbase_file_bcprov: "bcprov-jdk*.jar"
+hbase_file_slf4j: "log4j-slf4j-impl-*.jar"
+

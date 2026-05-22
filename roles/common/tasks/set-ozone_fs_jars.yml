@@ -1,0 +1,19 @@
+- name: Set the ozone_fs_jars fact
+  block:
+  - name: Get ozone fs jar
+    ansible.builtin.shell:
+      cmd: "{{ 'ls -f ' ~ ozone_home ~ '/share/ozone/lib/ozone-filesystem-hadoop3-*.jar' }}"
+    register: ozone_fs_jars
+    
+  - name: Check for ozone jars
+    ansible.builtin.assert:
+      that: (ozone_fs_jars.stdout_lines | length()) == 2
+      fail_msg: "There must be the 2 ozone fs jar files"
+
+  - name: Set fact ozone_fs_jars
+    ansible.builtin.set_fact:
+      ozone_fs_jars: "{{ ozone_fs_jars }}"
+      
+  when: 
+    - with_ozone | bool  
+    - ozone_fs_jars is not defined

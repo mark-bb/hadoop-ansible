@@ -1,0 +1,43 @@
+<configuration>
+
+  <property><name>hadoop.kms.key.provider.uri</name><value>{{ hadoop_kms_keystore }}</value></property>
+  <!-- <property><name>hadoop.security.keystore.java-keystore-provider.password-file</name><value>kms.keystore.password</value></property> -->
+
+  <property><name>hadoop.kms.cache.enable</name><value>true</value></property>
+  <property><name>hadoop.kms.cache.timeout.ms</name><value>600000</value></property>
+  <property><name>hadoop.kms.current.key.cache.timeout.ms</name><value>30000</value></property>
+
+{% if with_kerberos | bool %}
+  <property><name>hadoop.kms.authentication.type</name><value>kerberos</value></property>
+  <property><name>hadoop.kms.authentication.kerberos.keytab</name><value>{{ hadoop_kms_spnego_kerberos_keytab }}</value></property>
+  <property><name>hadoop.kms.authentication.kerberos.principal</name><value>{{ hadoop_kms_spnego_kerberos_principal }}</value></property>
+  <property><name>hadoop.kms.authentication.kerberos.name.rules</name><value>DEFAULT</value></property>
+{% endif %}
+  <property><name>hadoop.kms.ssl.enabled</name><value>{{ with_ssl | bool | ternary('true', 'false') }}</value></property>
+   
+  <property><name>hadoop.kms.proxyuser.{{ hadoop_user }}.users</name><value>*</value></property>
+  <property><name>hadoop.kms.proxyuser.{{ hadoop_user }}.groups</name><value>*</value></property>
+  <property><name>hadoop.kms.proxyuser.{{ hadoop_user }}.hosts</name><value>*</value></property>   
+
+  <property><name>hadoop.kms.authentication.delegation-token.update-interval.sec</name><value>86400</value></property>
+  <property><name>hadoop.kms.authentication.delegation-token.max-lifetime.sec</name><value>604800</value></property>
+  <property><name>hadoop.kms.authentication.delegation-token.renew-interval.sec</name><value>86400</value></property>
+  <property><name>hadoop.kms.authentication.delegation-token.removal-scan-interval.sec</name><value>3600</value></property>
+
+{% if with_zookeeper | bool %}
+  <property><name>hadoop.kms.authentication.signer.secret.provider</name><value>zookeeper</value></property>
+  <property><name>hadoop.kms.authentication.signer.secret.provider.zookeeper.path</name><value>/hadoop-kms/hadoop-auth-signature-secret</value></property>
+  <property><name>hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string</name><value>{{ ha_zookeeper_quorum }}</value></property>
+  <property><name>hadoop.kms.authentication.signer.secret.provider.zookeeper.auth.type</name><value>sasl</value></property>
+  <property><name>hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.keytab</name><value>{{ hadoop_kms_kerberos_keytab }}</value></property>
+  <property><name>hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal</name><value>{{ hadoop_kms_kerberos_principal }}</value></property>
+  
+  <property><name>hadoop.kms.authentication.zk-dt-secret-manager.enable</name><value>true</value></property>
+  <property><name>hadoop.kms.authentication.zk-dt-secret-manager.zkConnectionString</name><value>{{ ha_zookeeper_quorum }}</value></property>
+  <property><name>hadoop.kms.authentication.zk-dt-secret-manager.znodeWorkingPath</name><value>zkdtsm</value></property>
+  <property><name>hadoop.kms.authentication.zk-dt-secret-manager.zkAuthType</name><value>sasl</value></property>
+  <property><name>hadoop.kms.authentication.zk-dt-secret-manager.kerberos.keytab</name><value>{{ hadoop_kms_kerberos_keytab }}</value></property>
+  <property><name>hadoop.kms.authentication.zk-dt-secret-manager.kerberos.principal</name><value>{{ hadoop_kms_kerberos_principal }}</value></property>  
+{% endif %}
+  
+</configuration>

@@ -1,0 +1,7 @@
+- name: Setup Spark
+  ansible.builtin.include_tasks: setup.yml
+  when: not (spark_config_only | bool)
+  
+- name: Config Spark
+  ansible.builtin.include_tasks: config.yml
+  

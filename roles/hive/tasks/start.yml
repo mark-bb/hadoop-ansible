@@ -1,0 +1,27 @@
+- name: Start Hive Services
+  block:
+  - name: Start Hive Metastore Server
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hive_user ~ ' hive --service metastore &>/tmp/hms.log </dev/null & ' }}"
+
+  - name: Waiting for Hive Metastore Server
+    ansible.builtin.wait_for:
+      port: 9083
+      delay: 5
+      timeout: 300
+      msg: "Hive Metastore Server is not accessible"
+
+  - name: Start HiveServer2
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hive_user ~ ' hive --service hiveserver2 &>/tmp/hs2.log </dev/null & ' }}"
+
+  - name: Waiting for HiveServer2
+    ansible.builtin.wait_for:
+      port: 10000
+      delay: 5
+      timeout: 300
+      msg: "HiveServer2 is not accessible"
+
+  when: 
+    - inventory_hostname in groups[hive_group]
+    

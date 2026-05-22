@@ -1,0 +1,17 @@
+---
+- name: Setup Hive
+  ansible.builtin.include_tasks: setup.yml
+  when: not (hive_config_only | bool)
+
+- name: Config Hive
+  ansible.builtin.include_tasks: config.yml
+
+- name: Initialize Hive Metastore
+  ansible.builtin.include_tasks: hms-init.yml
+  when:
+    - not (hive_config_only | bool)
+    - hive_init_hms | bool
+
+- name: Start Hive services
+  ansible.builtin.include_tasks: start.yml
+  

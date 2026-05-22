@@ -1,0 +1,9 @@
+Client {
+       com.sun.security.auth.module.Krb5LoginModule required
+       doNotPrompt=true
+       useKeyTab=true
+       keyTab="{{ keytabs_path ~ '/RM.keytab' }}"
+       storeKey=true
+       useTicketCache=false
+       principal="{{ 'RM/' ~ inventory_hostname ~ '@' ~ kerberos_realm }}";
+};

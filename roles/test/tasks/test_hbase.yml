@@ -1,0 +1,9 @@
+- name: Find inst dir
+  ansible.builtin.find:
+    paths: "{{ hbase_home_base }}"
+    patterns: "mongodb*"
+    file_type: directory
+  register: res
+
+- ansible.builtin.debug:
+    var: res

@@ -1,0 +1,13 @@
+---
+- name: Stop Ozone if it's running
+  ansible.builtin.import_tasks: stop-ozone-ha.yml
+
+- name: Copy env files
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: "ozone.sh.j2",                 dest: "{{ ozone_profile }}" }
+    - { src: "ozone-env.sh.j2",             dest: "{{ hadoop_conf_dir ~ '/ozone-env.sh' }}" }
+    - { src: "ozone-site-ha-om-scm.xml.j2", dest: "{{ hadoop_conf_dir ~ '/ozone-site.xml' }}" }
+   

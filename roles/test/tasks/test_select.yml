@@ -1,0 +1,11 @@
+- name: "Set fact"
+  ansible.builtin.set_fact:
+    yarn_tls_versions:
+      - { when: "{{ not (yarn_with_tls_v15 | bool) and not (yarn_with_tls_v20 | bool) }}", ver: "1.0f" }
+      - { when: "{{ yarn_with_tls_v15 | bool }}",                                          ver: "1.5f" }
+      - { when: "{{ yarn_with_tls_v20 | bool }}",                                          ver: "2.0f" }
+
+
+- debug:
+    var: yarn_tls_versions
+

@@ -1,0 +1,86 @@
+<configuration>
+<property><name>fs.defaultFS</name><value>{{ fs_defaultFS }}</value></property>
+<property><name>hadoop.proxyuser.{{ hadoop_user }}.groups</name><value>*</value></property>
+<property><name>hadoop.proxyuser.{{ hadoop_user }}.hosts</name><value>*</value></property>
+
+<!-- <property><name>hadoop.security.key.provider.path</name><value>kms://http{{ ( with_ssl | bool | ternary('s', '') ) ~ '@' ~ ( groups[hadoop_namenodes_group] | join(';') ) }}:9600/kms</value></property> -->
+<property><name>hadoop.security.key.provider.path</name><value>{{ hadoop_security_key_provider_path }}</value></property>
+<property><name>hadoop.security.kms.client.encrypted.key.cache.size</name><value>500</value></property>
+<property><name>hadoop.security.kms.client.encrypted.key.cache.low-watermark</name><value>0.3</value></property>
+<property><name>hadoop.security.kms.client.encrypted.key.cache.num.refill.threads</name><value>2</value></property>
+<property><name>hadoop.security.kms.client.encrypted.key.cache.expiry</name><value>43200000</value></property>
+
+{% if with_ozone | bool %}
+
+<property><name>fs.trash.interval</name><value>1</value></property>
+<property><name>fs.ofs.impl</name><value>org.apache.hadoop.fs.ozone.RootedOzoneFileSystem</value></property>
+<property><name>fs.AbstractFileSystem.ofs.impl</name><value>org.apache.hadoop.fs.ozone.RootedOzFs</value></property>
+<property><name>fs.s3a.bucket.probe</name><value>0</value></property>
+<property><name>fs.s3a.change.detection.version.required</name><value>false</value></property>
+<property><name>fs.s3a.change.detection.mode</name><value>none</value></property>
+<property><name>fs.s3a.access.key</name><value>my.aws.key</value></property>
+<property><name>fs.s3a.secret.key</name><value>my.secret.key</value></property>
+<property><name>fs.s3a.endpoint</name><value>http://{{ ozone_s3gw_hostname }}:9878</value></property>
+<property><name>fs.s3a.path.style.access</name><value>true</value></property>
+<property><name>fs.s3a.impl</name><value>org.apache.hadoop.fs.s3a.S3AFileSystem</value></property>
+
+{% endif %}
+
+{% if with_zookeeper | bool %}
+
+<property><name>ha.zookeeper.quorum</name><value>{{ ha_zookeeper_quorum }}</value></property>
+
+{% endif %}
+
+{% if with_kerberos | bool %}
+
+<property><name>hadoop.security.authentication</name><value>kerberos</value></property>
+<property><name>hadoop.security.authorization</name><value>true</value></property>
+<property><name>hadoop.kerberos.keytab.login.autorenewal.enabled</name><value>true</value></property>
+<property><name>hadoop.http.authentication.type</name><value>kerberos</value></property>
+<property><name>hadoop.http.authentication.kerberos.principal</name><value>{{ hadoop_spnego_kerberos_principal }}</value></property>
+<property><name>hadoop.http.authentication.kerberos.keytab</name><value>{{ hadoop_spnego_kerberos_keytab }}</value></property>
+<property><name>hadoop.http.cross-origin.enabled</name><value>true</value></property>
+<property><name>hadoop.http.filter.initializers</name><value>org.apache.hadoop.security.AuthenticationFilterInitializer,org.apache.hadoop.security.HttpCrossOriginFilterInitializer</value></property>
+<property><name>hadoop.kms.authentication.kerberos.principal</name><value>*</value></property>
+
+{% if with_zookeeper | bool %}
+<property><name>ha.zookeeper.acl</name><value>sasl:NN:rwcda</value></property>
+{% endif %}
+
+<!--
+<property>
+  <name>hadoop.security.auth_to_local</name>
+  <value>
+    RULE:[2:$1/$2@$0](SCM/.*@{{ kerberos_realm }})s/.*/hadoop/
+    RULE:[2:$1/$2@$0](OM/.*@{{ kerberos_realm }})s/.*/hadoop/
+    RULE:[2:$1/$2@$0](S3G/.*@{{ kerberos_realm }})s/.*/hadoop/
+    DEFAULT
+  </value>
+</property>
+-->
+
+<property>
+  <name>hadoop.security.auth_to_local</name>
+  <value>
+    RULE:[2:$1/$2@$0](.*/.*@{{ kerberos_realm }})s/.*/hadoop/
+    DEFAULT
+  </value>
+</property>
+
+<property><name>hadoop.security.group.mapping</name><value>org.apache.hadoop.security.LdapGroupsMapping</value></property>
+<property><name>hadoop.security.group.mapping.ldap.url</name><value>{{ ldap_url }}</value></property>
+<property><name>hadoop.security.group.mapping.ldap.base</name><value>{{ ldap_base }}</value></property>
+<property><name>hadoop.security.group.mapping.ldap.userbase</name><value>{{ ldap_userbase }}</value></property>
+<property><name>hadoop.security.group.mapping.ldap.groupbase</name><value>{{ ldap_groupbase }}</value></property>
+<property><name>hadoop.security.group.mapping.ldap.bind.user</name><value>{{ ldap_bind_user }}</value></property>
+<property><name>hadoop.security.group.mapping.ldap.bind.password.file</name><value>{{ ldap_bind_password_file }}</value></property>
+<property><name>hadoop.security.group.mapping.ldap.search.filter.user</name><value>{{ ldap_search_filter_user }}</value></property>
+<property><name>hadoop.security.group.mapping.ldap.search.filter.group</name><value>{{ ldap_search_filter_group }}</value></property>
+<property><name>hadoop.security.group.mapping.ldap.search.attr.member</name><value>{{ ldap_search_attr_member }}</value></property>
+<property><name>hadoop.security.group.mapping.ldap.search.attr.group.name</name><value>{{ ldap_search_attr_group_name }}</value></property>
+<property><name>hadoop.security.group.mapping.ldap.cache.secs</name><value>300</value></property>
+
+{% endif %}
+
+</configuration>

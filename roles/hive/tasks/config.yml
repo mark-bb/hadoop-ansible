@@ -1,0 +1,20 @@
+---
+- name: Stopt hive
+  ansible.builtin.include_tasks: stop.yml
+
+- name: Set hive configs
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: "hive.sh.j2",          dest: "{{ hive_profile }}" }
+    - { src: "hive-env.sh.j2",      dest: "{{ hive_conf_dir ~ '/hive-env.sh' }}" }
+    - { src: "hive_jaas.conf.j2",   dest: "{{ hive_conf_dir ~ '/hive_jaas.conf' }}" }
+    - { src: "hive-site.xml.j2",    dest: "{{ hive_conf_dir ~ '/hive-site.xml' }}" }
+    - { src: "beeline-site.xml.j2", dest: "{{ hive_conf_dir ~ '/beeline-site.xml' }}" }
+
+- name: "{{ 'Set ' ~ hive_home ~ '/bin/hive-config.sh' }}"
+  ansible.builtin.copy:
+    content: "{{ 'export HADOOP_HOME=' ~ hadoop_home }}"
+    dest: "{{ hive_home ~ '/bin/hive-config.sh' }}"
+

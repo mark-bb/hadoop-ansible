@@ -1,0 +1,28 @@
+<configuration>
+  <property><name>mapreduce.framework.name</name><value>yarn</value></property>
+  <property><name>mapreduce.map.env</name><value>HADOOP_MAPRED_HOME=${HADOOP_HOME}</value></property>
+  <property><name>mapreduce.reduce.env</name><value>HADOOP_MAPRED_HOME=${HADOOP_HOME}</value></property>
+<!--	
+  <property><name>mapreduce.map.memory.mb</name><value>256</value></property>   
+  <property><name>mapreduce.reduce.memory.mb</name><value>256</value></property>
+  <property><name>yarn.app.mapreduce.am.resource.mb</name><value>512</value></property>
+-->	
+  <property><name>yarn.app.mapreduce.am.env</name><value>HADOOP_MAPRED_HOME=${HADOOP_HOME}</value></property>
+
+{% if with_kerberos | bool %}
+  <property><name>mapreduce.jobhistory.principal</name><value>{{ mapreduce_jobhistory_kerberos_principal }}</value></property>
+  <property><name>mapreduce.jobhistory.keytab</name><value>{{ mapreduce_jobhistory_kerberos_keytab }}</value></property>
+{% endif %}
+
+{% if with_ssl | bool %}
+  <property><name>mapreduce.jobhistory.http.policy</name><value>{{ with_ssl | bool | ternary('HTTPS_ONLY', 'HTTP') }}</value></property>
+  <property><name>mapreduce.ssl.enabled</name><value>true</value></property>
+  <property><name>mapreduce.shuffle.ssl.enabled</name><value>true</value></property>
+  <property><name>yarn.app.mapreduce.am.webapp.https.enabled</name><value>true</value></property>
+{% endif %}
+
+{% if yarn_with_tls_v20 | bool %}
+  <property><name>mapreduce.job.emit-timeline-data</name><value>true</value></property>
+{% endif %}
+
+</configuration>	

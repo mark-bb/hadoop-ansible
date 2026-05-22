@@ -1,0 +1,19 @@
+---
+- name: Setup env
+  ansible.builtin.include_tasks: set-env.yml
+  
+- name: Config Yarn
+  ansible.builtin.include_tasks: install.yml
+  when:
+    - play_action == "install"
+
+- name: Start Yarn
+  ansible.builtin.include_tasks: start.yml
+  when:
+    - play_action == "start"
+
+- name: Stop Yarn
+  ansible.builtin.include_tasks: stop.yml
+  when:
+    - play_action == "stop"
+

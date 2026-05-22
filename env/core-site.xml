@@ -1,0 +1,78 @@
+<configuration>
+<property><name>fs.defaultFS</name><value>ofs://omservice1</value></property>
+<property><name>hadoop.proxyuser.hadoop.groups</name><value>*</value></property>
+<property><name>hadoop.proxyuser.hadoop.hosts</name><value>*</value></property>
+
+<!-- <property><name>hadoop.security.key.provider.path</name><value>kms://https@astra181-scylla-01.internal;astra181-scylla-02.internal;astra181-scylla-03.internal:9600/kms</value></property> -->
+<property><name>hadoop.security.key.provider.path</name><value>kms://https@astra181-scylla-01.internal:9600/kms</value></property>
+<property><name>hadoop.security.kms.client.encrypted.key.cache.size</name><value>500</value></property>
+<property><name>hadoop.security.kms.client.encrypted.key.cache.low-watermark</name><value>0.3</value></property>
+<property><name>hadoop.security.kms.client.encrypted.key.cache.num.refill.threads</name><value>2</value></property>
+<property><name>hadoop.security.kms.client.encrypted.key.cache.expiry</name><value>43200000</value></property>
+
+
+<property><name>fs.trash.interval</name><value>1</value></property>
+<property><name>fs.ofs.impl</name><value>org.apache.hadoop.fs.ozone.RootedOzoneFileSystem</value></property>
+<property><name>fs.AbstractFileSystem.ofs.impl</name><value>org.apache.hadoop.fs.ozone.RootedOzFs</value></property>
+<property><name>fs.s3a.bucket.probe</name><value>0</value></property>
+<property><name>fs.s3a.change.detection.version.required</name><value>false</value></property>
+<property><name>fs.s3a.change.detection.mode</name><value>none</value></property>
+<property><name>fs.s3a.access.key</name><value>my.aws.key</value></property>
+<property><name>fs.s3a.secret.key</name><value>my.secret.key</value></property>
+<property><name>fs.s3a.endpoint</name><value>http://astra181-scylla-04.internal:9878</value></property>
+<property><name>fs.s3a.path.style.access</name><value>true</value></property>
+<property><name>fs.s3a.impl</name><value>org.apache.hadoop.fs.s3a.S3AFileSystem</value></property>
+
+
+
+<property><name>ha.zookeeper.quorum</name><value>astra181-scylla-01.internal:2281,astra181-scylla-02.internal:2281,astra181-scylla-03.internal:2281</value></property>
+
+
+
+<property><name>hadoop.security.authentication</name><value>kerberos</value></property>
+<property><name>hadoop.security.authorization</name><value>true</value></property>
+<property><name>hadoop.kerberos.keytab.login.autorenewal.enabled</name><value>true</value></property>
+<property><name>hadoop.http.authentication.type</name><value>kerberos</value></property>
+<property><name>hadoop.http.authentication.kerberos.principal</name><value>HTTP/_HOST@DOMAIN.COM</value></property>
+<property><name>hadoop.http.authentication.kerberos.keytab</name><value>/etc/security/keytabs/HTTP.keytab</value></property>
+<property><name>hadoop.http.cross-origin.enabled</name><value>true</value></property>
+<property><name>hadoop.http.filter.initializers</name><value>org.apache.hadoop.security.AuthenticationFilterInitializer,org.apache.hadoop.security.HttpCrossOriginFilterInitializer</value></property>
+<property><name>hadoop.kms.authentication.kerberos.principal</name><value>*</value></property>
+
+<property><name>ha.zookeeper.acl</name><value>sasl:NN:rwcda</value></property>
+
+<!--
+<property>
+  <name>hadoop.security.auth_to_local</name>
+  <value>
+    RULE:[2:$1/$2@$0](SCM/.*@DOMAIN.COM)s/.*/hadoop/
+    RULE:[2:$1/$2@$0](OM/.*@DOMAIN.COM)s/.*/hadoop/
+    RULE:[2:$1/$2@$0](S3G/.*@DOMAIN.COM)s/.*/hadoop/
+    DEFAULT
+  </value>
+</property>
+-->
+
+<property>
+  <name>hadoop.security.auth_to_local</name>
+  <value>
+    RULE:[2:$1/$2@$0](.*/.*@DOMAIN.COM)s/.*/hadoop/
+    DEFAULT
+  </value>
+</property>
+
+<property><name>hadoop.security.group.mapping</name><value>org.apache.hadoop.security.LdapGroupsMapping</value></property>
+<property><name>hadoop.security.group.mapping.ldap.url</name><value>ldap://astra181-scylla-jump.internal:389</value></property>
+<property><name>hadoop.security.group.mapping.ldap.base</name><value>dc=domain,dc=com</value></property>
+<property><name>hadoop.security.group.mapping.ldap.userbase</name><value>ou=People,dc=domain,dc=com</value></property>
+<property><name>hadoop.security.group.mapping.ldap.groupbase</name><value>ou=Groups,dc=domain,dc=com</value></property>
+<property><name>hadoop.security.group.mapping.ldap.bind.user</name><value>cn=bind,ou=ServiceAccounts,dc=domain,dc=com</value></property>
+<property><name>hadoop.security.group.mapping.ldap.bind.password.file</name><value>/opt/hadoop/etc/hadoop/ldap_bind_password.txt</value></property>
+<property><name>hadoop.security.group.mapping.ldap.search.filter.user</name><value>(&amp;(objectClass=posixAccount)(uid={0}))</value></property>
+<property><name>hadoop.security.group.mapping.ldap.search.filter.group</name><value>(objectclass=posixGroup)</value></property>
+<property><name>hadoop.security.group.mapping.ldap.search.attr.member</name><value>memberUid</value></property>
+<property><name>hadoop.security.group.mapping.ldap.search.attr.group.name</name><value>cn</value></property>
+<property><name>hadoop.security.group.mapping.ldap.cache.secs</name><value>300</value></property>
+
+
+</configuration>

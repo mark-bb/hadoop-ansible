@@ -1,0 +1,24 @@
+export JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
+export HBASE_CLASSPATH="${HBASE_CLASSPATH}:/opt/hadoop/etc/hadoop"
+export HBASE_LOG_DIR="/var/log/hadoop"
+export HBASE_MANAGES_ZK=false
+export KRB5_TRACE=/dev/stdout
+_HBASE_ZK_OPTS="
+-Dsun.security.krb5.debug=true
+-Dsun.security.spnego.debug=true
+-Djavax.security.auth.useSubjectCredsOnly=false
+-Djava.security.auth.login.config=/opt/hbase/conf/hbase_jaas.conf
+-Dzookeeper.sasl.clientconfig=Client
+-Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty
+-Dzookeeper.client.secure=true
+-Dzookeeper.ssl.keyStore.location=/etc/security/certs/keystore.jks
+-Dzookeeper.ssl.keyStore.type=JKS
+-Dzookeeper.ssl.keyStore.password=passw0rd
+-Dzookeeper.ssl.trustStore.location=/etc/security/certs/truststore.jks
+-Dzookeeper.ssl.trustStore.type=JKS
+-Dzookeeper.ssl.trustStore.password=passw0rd
+"
+#export HBASE_MASTER_OPTS="${HBASE_MASTER_OPTS} ${_HBASE_ZK_OPTS}"
+#export HBASE_REGIONSERVER_OPTS="${HBASE_REGIONSERVER_OPTS} ${_HBASE_ZK_OPTS}"
+#export HBASE_SHELL_OPTS="${HBASE_SHELL_OPTS} ${_HBASE_ZK_OPTS}"
+export HBASE_OPTS="${HBASE_OPTS} ${_HBASE_ZK_OPTS}"

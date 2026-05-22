@@ -1,0 +1,20 @@
+hdfs_config_only: "yes"
+hdfs_dfs_namenode_dir: "/hdfs/nameNode"
+hdfs_dfs_datanode_dir: "/hdfs/dataNode"
+hdfs_dfs_journalnode_dir: "/hdfs/journalNode"
+hdfs_dfs_replication: 3
+hdfs_dfs_namenode_rpc_address: "{{ groups[hadoop_namenodes_group] | map('regex_replace', '^([^.]+)(.*)$', '<property><name>dfs.namenode.rpc-address.' ~ hdfs_nameservice ~ '.\\1</name><value>\\1\\2:8020</value></property>') | join('\n  ') }}"
+hdfs_dfs_namenode_http_address: "{{ groups[hadoop_namenodes_group] | map('regex_replace', '^([^.]+)(.*)$', '<property><name>dfs.namenode.http-address.' ~ hdfs_nameservice ~ '.\\1</name><value>\\1\\2:9870</value></property>') | join('\n  ') }}"
+hdfs_dfs_namenode_shared_edits_dir: "{{ groups[hadoop_namenodes_group] | map('regex_replace','$',':8485') | join(';') | regex_replace('^(.*)$', '<property><name>dfs.namenode.shared.edits.dir</name><value>qjournal://\\1/' ~ hdfs_nameservice ~ '</value></property>') }}"
+
+hdfs_namenode_kerberos_principal: "{{ 'NN/_HOST@' ~ kerberos_realm }}"
+hdfs_namenode_kerberos_keytab: "{{ keytabs_path	~ '/NN.keytab' }}"
+
+hdfs_datanode_kerberos_principal: "{{ 'DN/_HOST@' ~ kerberos_realm }}"
+hdfs_datanode_kerberos_keytab: "{{ keytabs_path	~ '/DN.keytab' }}"
+
+hdfs_journalnode_kerberos_principal: "{{ 'JN/_HOST@' ~ kerberos_realm }}"
+hdfs_journalnode_kerberos_keytab: "{{ keytabs_path	~ '/JN.keytab' }}"
+
+hdfs_ha_automatic_failover_enabled: "{{ with_zookeeper | bool | ternary('true', 'false') }}"
+

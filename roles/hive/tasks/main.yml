@@ -1,0 +1,16 @@
+---
+- name: Install Hive
+  ansible.builtin.import_tasks: install.yml
+  when:
+    - play_action == "install"
+
+- name: stop Hive
+  ansible.builtin.import_tasks: stop.yml
+  when:
+    - play_action == "stop"
+
+- name: start Hive
+  ansible.builtin.import_tasks: start.yml
+  when:
+    - play_action == "start"
+

@@ -1,0 +1,29 @@
+---
+- name: Stop hbase
+  ansible.builtin.include_tasks: stop.yml
+  when: not (hbase_config_only | bool)
+
+- name: Set hbase configs
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: "hbase.sh.j2",          dest: "{{ hbase_profile }}" }
+    - { src: "hbase-env.sh.j2",      dest: "{{ hbase_conf_dir ~ '/hbase-env.sh' }}" }
+    - { src: "hbase_jaas.conf.j2",   dest: "{{ hbase_conf_dir ~ '/hbase_jaas.conf' }}" }
+    - { src: "hbase-site.xml.j2",    dest: "{{ hbase_conf_dir ~ '/hbase-site.xml' }}" }
+
+- name: Set the regionservers file
+  ansible.builtin.copy:
+    content: "{{ groups[hbase_regionservers_group] | join('\n') }}"
+    dest: "{{ hbase_conf_dir ~ '/regionservers' }}"
+
+- name: Set the backup-masters file
+  ansible.builtin.copy:
+    content: "{{ groups[hbase_masters_group][1:] | join('\n') }}"
+    dest: "{{ hbase_conf_dir ~ '/backup-masters' }}"
+
+- name: Start hbase
+  ansible.builtin.include_tasks: start.yml
+  when: not (hbase_config_only | bool)
+

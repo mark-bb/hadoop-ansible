@@ -1,0 +1,9 @@
+<configuration>
+  <property><name>ssl.client.truststore.location</name><value>/etc/security/certs/truststore.jks</value></property>
+  <property><name>ssl.client.truststore.password</name><value>passw0rd</value></property>
+  <property><name>ssl.client.truststore.type</name><value>jks</value></property>
+  <property><name>ssl.client.keystore.location</name><value>/etc/security/certs/keystore.jks</value></property>
+  <property><name>ssl.client.keystore.password</name><value>passw0rd</value></property>
+  <property><name>ssl.client.keystore.keypassword</name><value>passw0rd</value></property>
+  <property><name>ssl.client.keystore.type</name><value>jks</value></property>
+</configuration>

@@ -1,0 +1,49 @@
+play_action: "install"
+hive_config_only: "yes"
+hive_init_hms: "yes"
+
+hive_with_ssl: "yes"
+hive_use_ssl: "{{ hive_with_ssl | bool | ternary('true', 'false') }}"
+
+hive_profile: "/etc/profile.d/hive.sh"
+hive_java_tmpdir: "/tmp/hive/java"
+hive_pid_dir: "/var/run/hive"
+
+# hive_metastore_service_discovery_mode: "zookeeper"
+hive_metastore_service_discovery_mode: ""
+# hive_metastore_uris: "{{ groups[zookeeer_group] | map('regex_replace', '$', ':' ~ zookeeper_clientPort) | join(',') }}"
+hive_metastore_uris: "{{ groups[hive_group] | map('regex_replace', '^(.*)$', 'thrift://\\1:9083') | join(',') }}"
+hive_metastore_warehouse_dir: "{{ '/user/' ~ hive_user ~ '/warehouse' }}"
+
+hive_server2_support_dynamic_service_discovery: "true"
+
+hive_jdo_group: "hive_jdo_hosts"
+hive_metastore_db_type: "postgres"
+hive_metastore_db_name: "hivemetastore"
+hive_jdo_ConnectionURL: "{{ 'jdbc:postgresql://' ~ ( groups[hive_jdo_group] | map('regex_replace', '$', ':5432') | join(',') ) ~ '/' ~ hive_metastore_db_name ~ '?targetServerType=primary' }}"
+hive_jdo_ConnectionDriverName: "org.postgresql.Driver"
+hive_jdo_ConnectionUserName: "hive"
+hive_jdo_ConnectionPassword: "passw0rd"
+
+hive_security_authorization_enabled: "{{ with_kerberos | bool | ternary('true', 'false') }}"
+hive_metastore_sasl_enabled: "{{ with_kerberos | bool | ternary('true', 'false') }}"
+hive_users_in_admin_role: "hadoop,hive"
+
+hive_metastore_kerberos_principal: "{{ 'hive/_HOST@' ~ kerberos_realm }}"
+hive_metastore_kerberos_keytab: "{{ keytabs_path ~ '/hive.keytab' }}"
+
+hive_server2_authentication: "{{ with_kerberos | bool | ternary('KERBEROS', 'NONE') }}"
+
+hive_server2_webui_use_spnego: "{{ with_kerberos | bool | ternary('true', 'false') }}"
+hive_server2_webui_spnego_principal: "{{ 'HTTP/_HOST@' ~ kerberos_realm }}"
+hive_server2_webui_spnego_keytab: "{{ keytabs_path ~ '/HTTP.keytab' }}"
+
+hive_server2_authentication_kerberos_principal: "{{ 'hive/_HOST@' ~ kerberos_realm }}"
+hive_server2_authentication_kerberos_keytab: "{{ keytabs_path ~ '/hive.keytab' }}"
+
+hive_server2_authentication_spnego_principal: "{{ 'HTTP/_HOST@' ~ kerberos_realm }}"
+hive_server2_authentication_spnego_keytab: "{{ keytabs_path ~ '/HTTP.keytab' }}"
+
+hive_llap_task_principal: "{{ 'hive/_HOST@' ~ kerberos_realm }}"
+hive_llap_task_keytab: "{{ keytabs_path ~ '/hive.keytab' }}"
+

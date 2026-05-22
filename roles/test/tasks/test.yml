@@ -1,0 +1,20 @@
+- name: Create {{ keytabs_path }} directory
+  ansible.builtin.file:
+    path: "{{ keytabs_path }}"
+    owner: "root"
+    group: "root"
+    state: directory
+
+- name: listing
+  ansible.builtin.debug:
+    msg: "{{ lookup('ansible.builtin.fileglob', 'files/kerberos/keytabs/' + inventory_hostname + '/*.keytab') }}"
+
+- name: Copy each file over that matches the given pattern
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ keytabs_path }}"
+    owner: "root"
+    mode: 0600
+  with_fileglob:
+    - "{{ 'files/kerberos/keytabs/' ~ inventory_hostname ~ '/*.keytab' }}"
+

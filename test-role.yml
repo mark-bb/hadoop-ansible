@@ -1,0 +1,15 @@
+---
+- name: Setup variables
+  hosts: hadoop
+  tasks:
+    - name: Setup variables
+      ansible.builtin.include_tasks: tasks/set-env.yml
+  tags:
+    - always
+
+- name: hadoop [un]install
+  hosts: hadoop
+  roles:
+    - role: test
+  tags:
+    - test

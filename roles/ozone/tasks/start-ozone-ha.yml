@@ -1,0 +1,86 @@
+---
+- name: Start OMs & SCMs
+  block:
+  - name: Start SCM
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' ozone --daemon start scm >/tmp/scm.log 2>&1 </dev/null &' }}"
+
+  - name: Wait for SCM
+    ansible.builtin.wait_for:
+      port: 9860
+      delay: 5
+      timeout: 120
+      msg: "SCM is not accessible"
+      
+  - name: Start OM
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' ozone --daemon start om >/tmp/om.log 2>&1 </dev/null &' }}"
+
+  - name: Waiting for OM
+    ansible.builtin.wait_for:
+      host: "{{ ansible_facts.default_ipv4.address }}"
+      port: 9862
+      delay: 5
+      timeout: 120
+      msg: "OM is not accessible"
+
+  when: 
+    - inventory_hostname in groups[hadoop_namenodes_group]
+
+- name: Start HTTPFS
+  block:
+  - name: Start HTTPFS
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' ozone --daemon start httpfs >/tmp/httpfs.log 2>&1 </dev/null &' }}"
+
+  - name: Waiting for HTTPFS
+    ansible.builtin.wait_for:
+      port: 14000
+      delay: 5
+      timeout: 120
+      msg: "HTTPFS is not accessible"
+
+  when: 
+    - inventory_hostname == ozone_httpfs_hostname
+
+- name: Start Recon
+  block:
+  - name: Start Recon
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' ozone --daemon start recon >/tmp/recon.log 2>&1 </dev/null &' }}"
+
+  - name: Waiting for Recon
+    ansible.builtin.wait_for:
+      port: 9891
+      delay: 5
+      timeout: 120
+      msg: "Recon is not accessible"
+
+  when: 
+    - inventory_hostname == ozone_recon_hostname
+
+- name: Start S3 GW
+  block:
+  - name: Start S3 GW
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' ozone --daemon start s3g >/tmp/s3g.log 2>&1 </dev/null &' }}"
+
+  - name: Waiting for S3 GW
+    ansible.builtin.wait_for:
+      port: "{{ ozone_with_ssl | bool | ternary('9879', '9878') }}"
+      delay: 5
+      timeout: 120
+      msg: "S3 GW is not accessible"
+
+  when: 
+    - inventory_hostname == ozone_s3gw_hostname
+
+- name: Data nodes
+  block:
+  - name: Start Data node
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' ozone --daemon start datanode >/tmp/datanode.log 2>&1 </dev/null &' }}"
+
+  when: 
+    - inventory_hostname in groups[hadoop_datanodes_group]
+

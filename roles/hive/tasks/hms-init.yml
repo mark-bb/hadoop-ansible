@@ -1,0 +1,13 @@
+---
+- block:
+  - name: Initialize the database
+    ansible.builtin.shell:
+      # cmd: "{{ 'nohup sudo -iu ' ~ hive_user ~ ' sh -c \"source ' ~ hive_conf_dir ~ '/hive-env.sh && schematool -dbType ' ~ hive_metastore_db_type ~ ' -initSchema\"' }}"
+      cmd: "{{ 'nohup sudo -iu ' ~ hive_user ~ ' schematool -dbType ' ~ hive_metastore_db_type ~ ' -initSchema' }}"
+    register: res
+    
+  - ansible.builtin.debug:
+      var: res  
+
+  when: 
+    - inventory_hostname == hive_hostname

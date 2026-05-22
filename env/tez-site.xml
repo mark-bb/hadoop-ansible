@@ -1,0 +1,11 @@
+<configuration>
+  <property><name>tez.lib.uris</name><value>ofs://omservice1/apps/tez/tez.tar.gz</value></property>
+  <property><name>tez.use.cluster.hadoop-libs</name><value>true</value></property>
+  <property><name>tez.am.tez-ui.webservice.enable</name><value>false</value></property>
+  <property><name>tez.am.tez-ui.webservice.enable.ssl</name><value>true</value></property>
+  <property><name>tez.tez-ui.history-url.base</name><value>https://astra181-scylla-04.internal:8443/tez-ui</value></property>
+  <property><name>tez.runtime.shuffle.ssl.enable</name><value>true</value></property>
+  <property><name>tez.runtime.shuffle.keep-alive.enabled</name><value>true</value></property>
+  <property><name>tez.session.am.dag.submit.timeout.secs</name><value>2</value></property>
+  <property><name>tez.history.logging.service.class</name><value>org.apache.tez.dag.history.logging.ats.ATSV15HistoryLoggingService</value></property>
+</configuration>

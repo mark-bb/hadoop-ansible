@@ -1,0 +1,9 @@
+---
+- name: Remove a hadoop user
+  hosts: all
+
+  tasks:
+  - name: Remove a hadoop user
+    ansible.builtin.user:
+      name: "{{ hadoop_user }}"
+      remove: true

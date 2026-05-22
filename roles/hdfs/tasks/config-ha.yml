@@ -1,0 +1,50 @@
+---
+- name: Stop HDFS if it's running
+  block:
+  - name: Check if Name Node is running
+    ansible.builtin.shell:
+      cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep NameNode || true' }}"
+    register: res
+    
+  - name: Stop HDFS if it's running
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' stop-dfs.sh' }}"
+    when:
+      - (res.stdout_lines | length()) != 0
+
+  when: 
+    - inventory_hostname == groups[hadoop_namenodes_group][0]
+
+- name: Set hdfs-site.xml
+  ansible.builtin.template:
+    src: hdfs-site-ha.xml.j2
+    dest: "{{ hadoop_conf_dir ~ '/hdfs-site.xml' }}"
+
+- block:
+  - name: Create {{ certs_path }} directory
+    ansible.builtin.file:
+      path: "{{ certs_path }}"
+      owner: "root"
+      group: "root"
+      state: directory
+
+  - name: Keytabs copy
+    ansible.builtin.copy:
+      src: "{{ item }}"
+      dest: "{{ certs_path }}"
+      owner: "root"
+      group: "{{ hadoop_user }}"
+      mode: 0640
+    with_fileglob:
+      - "{{ 'files/certs/' ~ inventory_hostname ~ '/*.jks' }}"
+
+  - name: Copy ssl files
+    ansible.builtin.template:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+    with_items:
+      - { src: "ssl-server.xml.j2", dest: "{{ hadoop_conf_dir ~ '/ssl-server.xml' }}" }
+      - { src: "ssl-client.xml.j2", dest: "{{ hadoop_conf_dir ~ '/ssl-client.xml' }}" }
+
+  when: with_kerberos | bool
+

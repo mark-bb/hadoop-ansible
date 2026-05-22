@@ -1,0 +1,7 @@
+- name: Find the master
+  ansible.builtin.shell:
+    cmd: "{{ 'ps -u ' ~ hadoop_user ~ ' -o args= | grep \"foreground_start master\\$\" || true' }}"
+  register: res
+
+- ansible.builtin.debug:
+    var: res

@@ -1,0 +1,24 @@
+---
+- name: Get user info
+  ansible.builtin.getent:
+    split: ":"
+    database: passwd
+    key: "{{ hadoop_user }}"
+
+- ansible.builtin.set_fact:
+    hadoop_user_home: "{{ ansible_facts.getent_passwd[hadoop_user][4] }}"
+
+- name: Setup distro
+  ansible.builtin.include_tasks: setup.yml
+  when: not (ozone_config_only | bool)
+
+- name: Config HA OZONE
+  ansible.builtin.include_tasks: config-ha.yml
+
+- name: Initialize HA OZONE
+  ansible.builtin.include_tasks: init-ha.yml
+  when: not (ozone_config_only | bool)
+
+- name: Start OZONE
+  ansible.builtin.include_tasks: start-ozone-ha.yml
+

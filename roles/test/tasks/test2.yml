@@ -1,0 +1,10 @@
+- name: Create hadoop configs as soft links to ozone ones
+  ansible.builtin.file:
+    src: "{{ item }}"
+    dest: "{{ hadoop_home ~ '/share/hadoop/common/' ~ (item | basename) }}"
+    state: link
+    force: true
+  with_fileglob:
+    - "{{ ozone_home ~ '/share/ozone/lib/ozone-filesystem-hadoop3-*.jar' }}"
+  when:
+    - not item is search("client") 

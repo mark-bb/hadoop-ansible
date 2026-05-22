@@ -1,0 +1,54 @@
+- block:    
+  - name: Start MR History Server
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' mapred --daemon start historyserver &>/tmp/mrhist.log </dev/null &' }}"
+  
+  - name: Waiting for MR History Server
+    ansible.builtin.wait_for:
+      port: 10020
+      delay: 5
+      timeout: 60
+      msg: "MR History Server is not accessible"
+  when: inventory_hostname == yarn_mrhist_hostname
+      
+- name: Start Yarn RMs
+  ansible.builtin.shell:
+    cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' start-yarn.sh &>/tmp/start-yarn.log </dev/null &' }}"
+  when: inventory_hostname == yarn_rm_hostname
+  
+- name: Waiting for Yarn RM
+  ansible.builtin.wait_for:
+    port: 8033
+    delay: 5
+    timeout: 60
+    msg: "Yarn RM is not accessible"
+  when: inventory_hostname in groups[yarn_group]
+
+- block:    
+  - name: Start Timeline Server
+    ansible.builtin.shell:
+      cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' yarn --daemon start timelineserver &>/tmp/timeline.log </dev/null &' }}"
+  
+  - name: Waiting for Timeline Server
+    ansible.builtin.wait_for:
+      port: 10200
+      delay: 5
+      timeout: 60
+      msg: "Timeline Server is not accessible"
+
+  - block:
+    - name: Start Timeline Reader
+      ansible.builtin.shell:
+        cmd: "{{ 'nohup sudo -iu ' ~ hadoop_user ~ ' yarn --daemon start timelinereader &>/tmp/timelinereader.log </dev/null &' }}"
+    
+    - name: Waiting for Timeline Reader
+      ansible.builtin.wait_for:
+        port: "{{ with_ssl | bool | ternary('8199', '8198') }}"
+        #port: "{{ with_ssl | bool | ternary('8190', '8188') }}"
+        delay: 5
+        timeout: 60
+        msg: "Timeline Reader is not accessible"
+    when: yarn_with_tls_v20 | bool
+
+  when: inventory_hostname == yarn_timeline_hostname
+

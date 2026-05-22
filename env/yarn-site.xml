@@ -1,0 +1,100 @@
+<configuration>
+
+  <property><name>hadoop.zk.address</name><value>astra181-scylla-01.internal:2281,astra181-scylla-02.internal:2281,astra181-scylla-03.internal:2281</value></property>
+  <property><name>yarn.acl.enable</name><value>true</value></property>
+  <property><name>yarn.resourcemanager.cluster-id</name><value>rmservice1</value></property>
+  <property><name>yarn.resourcemanager.ha.enabled</name><value>true</value></property>
+  <property><name>yarn.resourcemanager.ha.rm-ids</name><value>astra181-scylla-04,astra181-scylla-01</value></property>
+  <property><name>yarn.resourcemanager.hostname.astra181-scylla-04</name><value>astra181-scylla-04.internal</value></property>
+  <property><name>yarn.resourcemanager.hostname.astra181-scylla-01</name><value>astra181-scylla-01.internal</value></property>
+  <property><name>yarn.resourcemanager.webapp.https.address.astra181-scylla-04</name><value>astra181-scylla-04.internal:8090</value></property>
+  <property><name>yarn.resourcemanager.webapp.https.address.astra181-scylla-01</name><value>astra181-scylla-01.internal:8090</value></property>
+
+  <property><name>yarn.resourcemanager.bind-host</name><value>0.0.0.0</value></property>
+  <property><name>yarn.webapp.ui2.enable</name><value>true</value></property>
+
+  <property><name>yarn.resourcemanager.system-metrics-publisher.enabled</name><value>true</value></property>
+  <property><name>yarn.system-metrics-publisher.enabled</name><value>true</value></property>
+  
+  <property><name>yarn.resourcemanager.recovery.enabled</name><value>true</value></property>
+  <property><name>yarn.resourcemanager.zk-state-store.parent-path</name><value>/rmstore</value></property>
+  <property><name>yarn.resourcemanager.store.class</name><value>org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore</value></property>
+  <property><name>hadoop.zk.acl</name><value>sasl:RM:rwcda</value></property>
+  <property><name>yarn.resourcemanager.application-https.policy</name><value>STRICT</value></property>
+
+  <property><name>yarn.timeline-service.enabled</name><value>true</value></property>
+  <property><name>yarn.timeline-service.http-cross-origin.enabled</name><value>true</value></property>
+  <property><name>yarn.timeline-service.generic-application-history.enabled</name><value>true</value></property>
+  <property><name>yarn.timeline-service.hostname</name><value>astra181-scylla-04.internal</value></property>
+  <property><name>yarn.timeline-service.bind-host</name><value>0.0.0.0</value></property>
+  <property><name>yarn.timeline-service.address</name><value>${yarn.timeline-service.hostname}:10200</value></property>
+  <property><name>yarn.timeline-service.webapp.address</name><value>${yarn.timeline-service.hostname}:8188</value></property>
+  <property><name>yarn.timeline-service.webapp.https.address</name><value>${yarn.timeline-service.hostname}:8190</value></property>
+  <property><name>yarn.timeline-service.ttl-ms</name><value>7776000000</value></property>
+  <!-- <property><name>yarn.timeline-service.leveldb-timeline-store.path</name><value>${hadoop.tmp.dir}/yarn/timeline</value></property> -->
+
+ 
+  <property><name>yarn.timeline-service.versions</name><value>1.5f,2.0f</value></property>
+ 
+
+  <property><name>yarn.rm.system-metrics-publisher.emit-container-events</name><value>true</value></property>
+  <property><name>yarn.nodemanager.emit-container-events</name><value>true</value></property>
+  <property><name>yarn.timeline-service.reader.webapp.address</name><value>${yarn.timeline-service.hostname}:8198</value></property>
+  <property><name>yarn.timeline-service.reader.webapp.https.address</name><value>${yarn.timeline-service.hostname}:8199</value></property>
+  <!--
+  <property><name>yarn.log.server.web-service.url</name><value>https://${yarn.timeline-service.hostname}:8190/ws/v2/applicationlog</value></property>
+  -->
+  <property><name>yarn.log.server.web-service.url</name><value>${yarn.timeline-service.hostname}:8199/ws/v2/applicationlog</value></property>
+ 
+
+  <property><name>yarn.timeline-service.entity-group-fs-store.active-dir</name><value>ofs://omservice1/vol1/bucket1/ats/active</value></property>
+  <property><name>yarn.timeline-service.entity-group-fs-store.done-dir</name><value>ofs://omservice1/vol1/bucket1/ats/done</value></property>
+  <property><name>yarn.timeline-service.entity-group-fs-store.summary-store</name><value>org.apache.hadoop.yarn.server.timeline.RollingLevelDBTimelineStore</value></property>
+  <property><name>yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes</name><value>org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl</value></property>
+  <property><name>yarn.timeline-service.store-class</name><value>org.apache.hadoop.yarn.server.timeline.EntityGroupFSTimelineStore</value></property>
+ 
+
+  <property><name>yarn.log-aggregation-enable</name><value>true</value></property>
+  <property><name>yarn.http.policy</name><value>HTTPS_ONLY</value></property>
+  <property><name>yarn.log.server.url</name><value>https://astra181-scylla-04.internal:19890/jobhistory/logs</value></property>
+
+  <property><name>yarn.scheduler.capacity.maximum-am-resource-percent</name><value>1.0</value></property>
+  <property><name>yarn.scheduler.maximum-allocation-vcores</name><value>16</value></property>
+  <property><name>yarn.scheduler.maximum-allocation-mb</name><value>49152</value></property>
+  <property><name>yarn.scheduler.capacity.root.default.maximum-am-resource-percent</name><value>1.0</value></property>
+  <property><name>yarn.scheduler.capacity.root.default.maximum-allocation-vcores</name><value>16</value></property>
+  <property><name>yarn.scheduler.capacity.root.default.maximum-allocation-mb</name><value>49152</value></property>
+
+  <property><name>yarn.nodemanager.resource.memory-mb</name><value>49152</value></property>
+  <property><name>yarn.nodemanager.resource.cpu-vcores</name><value>16</value></property>
+  <property><name>yarn.nodemanager.aux-services</name><value>mapreduce_shuffle,timeline_collector</value></property>
+  <property><name>yarn.nodemanager.vmem-check-enabled</name><value>false</value></property>
+
+<!--
+  <property><name>yarn.scheduler.minimum-allocation-mb</name><value>128</value></property>
+-->
+  
+  <property><name>yarn.resourcemanager.principal</name><value>RM/_HOST@DOMAIN.COM</value></property>
+  <property><name>yarn.resourcemanager.keytab</name><value>/etc/security/keytabs/RM.keytab</value></property>
+  <property><name>yarn.resourcemanager.webapp.spnego-principal</name><value>HTTP/_HOST@DOMAIN.COM</value></property>
+  <property><name>yarn.resourcemanager.webapp.spnego-keytab-file</name><value>/etc/security/keytabs/HTTP.keytab</value></property>
+  
+  <property><name>yarn.nodemanager.principal</name><value>NM/_HOST@DOMAIN.COM</value></property>
+  <property><name>yarn.nodemanager.keytab</name><value>/etc/security/keytabs/NM.keytab</value></property>
+  <property><name>yarn.nodemanager.webapp.spnego-principal</name><value>HTTP/_HOST@DOMAIN.COM</value></property>
+  <property><name>yarn.nodemanager.webapp.spnego-keytab-file</name><value>/etc/security/keytabs/HTTP.keytab</value></property>
+  
+  <property><name>yarn.timeline-service.http-cross-origin.enabled</name><value>true</value></property>
+  <property><name>yarn.timeline-service.http-authentication.type</name><value>kerberos</value></property>
+  <property><name>yarn.timeline-service.http-authentication.kerberos.principal</name><value>HTTP/_HOST@DOMAIN.COM</value></property>
+  <property><name>yarn.timeline-service.http-authentication.kerberos.keytab</name><value>/etc/security/keytabs/HTTP.keytab</value></property>
+  <property><name>yarn.timeline-service.principal</name><value>TL/_HOST@DOMAIN.COM</value></property>
+  <property><name>yarn.timeline-service.keytab</name><value>/etc/security/keytabs/TL.keytab</value></property>
+
+  <property><name>yarn.timeline-service.hbase.configuration.file</name><value>file:/opt/hbase/conf/hbase-site.xml</value></property>
+  <property><name>yarn.timeline-service.hbase.coprocessor.jar.hdfs.location</name><value>hdfs://nameservice1/hbase/coprocessor/hadoop-yarn-server-timelineservice.jar</value></property>
+  <property><name>yarn.timeline-service.schema-creator.class</name><value>org.apache.hadoop.yarn.server.timelineservice.storage.HBaseTimelineSchemaCreator</value></property>
+  <property><name>yarn.nodemanager.aux-services.timeline_collector.class</name><value>org.apache.hadoop.yarn.server.timelineservice.collector.PerNodeTimelineCollectorsAuxService</value></property>
+
+</configuration>
+

@@ -1,0 +1,85 @@
+---
+- name: Create {{ hive_user }} user
+  ansible.builtin.user:
+    name: "{{ hive_user }}"
+    comment: "Hive user"
+    groups: "{{ hadoop_user }}"
+    shell: "/bin/bash"
+
+- name: Check if {{ hive_home }} exists
+  ansible.builtin.stat:
+    path: "{{ hive_home }}"
+  register: res
+
+# Install if not exists
+- block:  
+  - name: Install hive distro
+    ansible.builtin.unarchive:
+      src: "{{ lookup('ansible.builtin.fileglob', 'files/distrib/apache-hive-*.tar.gz') }}"
+      dest: "{{ hive_home_base }}"
+      owner: "root"
+      group: "root"
+  
+  - name: Get hive install directory name
+    ansible.builtin.shell:
+      cmd: "{{ 'ls -d ' ~ hive_home_base ~ '/apache-hive-*' }}"
+    register: hive_install_dir
+  
+  - name: Check existing hive directories
+    ansible.builtin.assert:
+      that: (hive_install_dir.stdout_lines | length() | int) == 1
+      fail_msg: "{{ 'There must be the only hive installation in the ' ~ hive_home_base ~ ' directory' }}"
+  
+  - name: Create a relative softlink to the hive installation
+    ansible.builtin.file:
+      src: "{{ (hive_install_dir.stdout | ansible.builtin.split('/'))[-1] }}"
+      dest: "{{ hive_home }}"
+      state: link
+      
+  when: not (res.stat.exists | bool)
+ 
+- name: Create hive directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ hive_user}}"
+    group: "{{ hive_user}}"
+    mode: "0777"
+    state: directory
+  with_items:
+    - "{{ hive_java_tmpdir }}"
+    - "{{ hive_pid_dir }}"
+
+- name: Copy PG driver
+  ansible.builtin.copy:
+    src: "{{ lookup('ansible.builtin.fileglob', 'files/distrib/postgresql-*.jar') }}"
+    dest: "{{ hive_home ~ '/lib/' }}"
+
+- name: Create soft link to Ozone jar
+  ansible.builtin.file:
+    src: "{{ item }}"
+    dest: "{{ hive_home ~ '/lib/' ~ (item | basename) }}"
+    state: link
+    force: true
+  with_fileglob:
+    - "{{ ozone_home ~ '/share/ozone/lib/ozone-filesystem-hadoop3-*.jar' }}"
+  when:
+    - with_ozone | bool
+    - not item is search("client")
+
+- block:
+  - name: Get kerberos TGT
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hive_user ~ ' kinit -kt ' ~ keytabs_path ~ '/hive.keytab hive/' ~ inventory_hostname }}"
+    when: with_kerberos | bool
+
+  - name: "{{ 'Create the hive warehouse directory: ' ~ hive_metastore_warehouse_dir }}"
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hive_user ~ ' hadoop fs -mkdir -p '  ~ hive_metastore_warehouse_dir ~ ' || true' }}"
+  
+  - name: Add write and execute permissions to warehouse group members
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hive_user ~ ' hadoop fs -chmod g+w ' ~ hive_metastore_warehouse_dir ~ ' || true' }}"
+
+  when: 
+    - inventory_hostname == hive_hostname
+

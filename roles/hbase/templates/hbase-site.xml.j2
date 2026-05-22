@@ -1,0 +1,25 @@
+<configuration>
+  <property><name>hbase.rootdir</name><value>{{ hbase_rootdir }}</value></property>
+  <property><name>hbase.cluster.distributed</name><value>true</value></property>
+  <property><name>hbase.zookeeper.quorum</name><value>{{ ha_zookeeper_quorum }}</value></property>
+  <property><name>hbase.superuser</name><value>{{ hadoop_user }}</value></property>
+  
+  <property><name>hbase.ssl.enabled</name><value>{{ with_ssl | bool | ternary('true', 'false') }}</value></property>
+  
+{% if with_kerberos | bool %}
+  <property><name>hbase.security.authentication</name><value>kerberos</value></property>
+  <property><name>hbase.master.keytab.file</name><value>{{ hbase_kerberos_keytab }}</value></property>
+  <property><name>hbase.master.kerberos.principal</name><value>{{ hbase_kerberos_principal }}</value></property>
+  <property><name>hbase.regionserver.keytab.file</name><value>{{ hbase_kerberos_keytab }}</value></property>
+  <property><name>hbase.regionserver.kerberos.principal</name><value>{{ hbase_kerberos_principal }}</value></property>
+  
+  <property><name>hbase.security.authentication.ui</name><value>kerberos</value></property>
+  <property><name>hbase.security.authentication.spnego.kerberos.principal</name><value>{{ hbase_spnego_principal }}</value></property>
+  <property><name>hbase.security.authentication.spnego.kerberos.keytab</name><value>{{ hbase_spnego_keytab }}</value></property>
+  <property><name>hbase.security.authentication.spnego.kerberos.name.rules</name><value></value>
+    <description>Optional, Hadoop-style 'auth_to_local' rules which will be parsed and used in the handling of Kerberos principals</description>
+  </property>
+  <property><name>hbase.security.authentication.spnego.admin.users</name><value>{{ hadoop_user }}</value></property>
+  <property><name>hbase.security.authentication.spnego.admin.groups</name><value>{{ hadoop_user }}</value></property>
+{% endif %}
+</configuration>

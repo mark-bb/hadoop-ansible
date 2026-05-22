@@ -1,0 +1,115 @@
+play_action: "install"
+#rhel:
+#java_home: "/usr/lib/jvm/jre-11-openjdk"
+#astra:
+java_home: "/usr/lib/jvm/java-11-openjdk-amd64"
+with_hdfs: yes
+with_hdfs_ha: yes
+with_ozone: yes
+with_ozone_ha: yes
+
+with_kerberos: yes
+with_kerberos_http: no
+kerberos_realm: "DOMAIN.COM"
+keytabs_path: "/etc/security/keytabs"
+
+ldap_url: "ldap://astra181-scylla-jump.internal:389"
+ldap_base: "dc=domain,dc=com"
+ldap_userbase: "{{ 'ou=People,' ~ ldap_base }}"
+ldap_groupbase: "{{ 'ou=Groups,' ~ ldap_base }}"
+ldap_bind_user: "{{ 'cn=bind,ou=ServiceAccounts,' ~ ldap_base }}"
+ldap_bind_password_file: "{{ hadoop_conf_dir ~ '/ldap_bind_password.txt' }}"
+ldap_search_filter_user: "(&amp;(objectClass=posixAccount)(uid={0}))"
+ldap_search_filter_group: "(objectclass=posixGroup)"
+ldap_search_attr_member: "memberUid"
+ldap_search_attr_group_name: "cn"
+
+with_ssl: yes
+certs_path: "/etc/security/certs"
+ssl_server_truststore_location: "{{ certs_path ~ '/truststore.jks' }}"
+ssl_server_keystore_location: "{{ certs_path ~ '/keystore.jks' }}"
+ssl_password: "passw0rd"
+
+hadoop_user: "hadoop"
+hadoop_namenodes_group: "hadoop_namenodes"
+hadoop_datanodes_group: "hadoop_datanodes"
+
+hadoop_home_base: "/opt"
+hadoop_home: "{{ hadoop_home_base ~ '/hadoop' }}"
+hadoop_conf_dir: "{{ hadoop_home ~ '/etc/hadoop' }}"
+hadoop_tmp_dir: "{{ '/tmp/hadoop-' ~ hadoop_user }}"
+hadoop_log_dir: "/var/log/hadoop"
+hadoop_profile: "/etc/profile.d/hadoop.sh"
+hdfs_nameservice: "nameservice1"
+
+ozone_home_base: "/opt"
+ozone_home: "{{ ozone_home_base ~ '/ozone' }}"
+ozone_conf_dir: "{{ ozone_home ~ '/etc/hadoop' }}"
+ozone_profile: "/etc/profile.d/ozone.sh"
+ozone_omservice: "omservice1"
+ozone_scmservice: "scmservice1"
+
+ozone_recon_group: "ozone_recon_hosts"
+ozone_recon_hostname: "{{ groups[ozone_recon_group][0] }}"
+
+ozone_httpfs_group: "ozone_httpfs_hosts"
+ozone_httpfs_hostname: "{{ groups[ozone_httpfs_group][0] }}"
+
+ozone_s3gw_group: "ozone_s3gw_hosts"
+ozone_s3gw_hostname: "{{ groups[ozone_s3gw_group][0] }}"
+
+fs_defaultFS: "{{ with_ozone | bool | ternary('ofs://' ~ ozone_omservice, 'hdfs://' ~ hdfs_nameservice) }}"
+
+zookeeer_group: "zookeeper_hosts"
+with_zookeeper: "{{ ((groups[zookeeer_group] | length) > 0) | ternary('yes', 'no') }}"
+zookeeper_clientPort: "2281"
+ha_zookeeper_quorum: "{{ groups[zookeeer_group] | map('regex_replace', '$', ':' ~ zookeeper_clientPort) | join(',') }}"
+
+hive_user: "hive"
+hive_home_base: "/opt"
+hive_home: "{{ hive_home_base ~ '/hive' }}"
+hive_conf_dir: "{{ hive_home ~ '/conf' }}"
+hive_group: "hive_hosts"
+hive_hostname: "{{ groups[hive_group][0] }}"
+
+yarn_group: "yarn_hosts"
+yarn_rm_hostname: "{{ groups[yarn_group][0] }}"
+yarn_timeline_hostname: "{{ groups[yarn_group][0] }}"
+yarn_mrhist_hostname: "{{ groups[yarn_group][0] }}"
+
+with_tez: "yes"
+tez_with_ssl: "yes"
+tez_home_base: "/opt"
+tez_home: "{{ tez_home_base ~ '/tez' }}"
+tez_conf_dir: "{{ tez_home ~ '/conf' }}"
+tez_lib_uris_base: "{{ fs_defaultFS ~ '/apps/tez' }}"
+tez_lib_uris: "{{ tez_lib_uris_base ~ '/tez.tar.gz' }}"
+tez_group: "tez_hosts"
+tez_hostname: "{{ groups[tez_group][0] }}"
+
+yarn_with_tls_v20: "yes"
+yarn_with_tls_v15: "yes"
+yarn_tls_versions:
+- { when: "{{ not (yarn_with_tls_v15 | bool) }}", ver: "1.0f" }
+- { when: "{{ yarn_with_tls_v15 | bool }}",       ver: "1.5f" }
+- { when: "{{ yarn_with_tls_v20 | bool }}",       ver: "2.0f" }
+
+kms_group: "kms_hosts"
+kms_hostname: "{{ groups[kms_group][0] }}"
+hadoop_security_key_provider_path: "{{ 'kms://http' ~ ( with_ssl | bool | ternary('s', '') ) ~ '@' ~ kms_hostname ~ ':9600/kms' }}"
+
+spark_masters_group: "spark_master_hosts"
+spark_history_hostname: "{{ groups[spark_masters_group][0] }}"
+
+spark_with_cluster: yes
+spark_master_hostname: "{{ groups[spark_masters_group][0] }}"
+spark_workers_group: "spark_worker_hosts"
+
+with_hbase: "yes"
+hbase_group: "hbase_hosts"
+hbase_masters_group: "hbase_masters"
+hbase_regionservers_group: "hbase_regionservers"
+hbase_home_base: "/opt"
+hbase_home: "{{ hbase_home_base ~ '/hbase' }}"
+hbase_conf_dir: "{{ hbase_home ~ '/conf' }}"
+

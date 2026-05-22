@@ -1,0 +1,15 @@
+- block:
+  - name: Get kerberos TGT
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' kinit -kt ' ~ keytabs_path ~ '/hbase.keytab hbase/' ~ inventory_hostname }}"
+    when: with_kerberos | bool
+
+  - name: "{{ 'Create Hbase hadoop directory: ' ~ hbase_rootdir }}"
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' hadoop fs -mkdir -p ' ~ hbase_rootdir }}"
+  
+  - name: Start Hbase
+    ansible.builtin.shell:
+      cmd: "{{ 'sudo -iu ' ~ hadoop_user ~ ' start-hbase.sh' }}"
+
+  when: inventory_hostname == groups[hbase_masters_group][0]

@@ -1,0 +1,31 @@
+spark.master                                yarn
+spark.submit.deployMode                     client
+#spark.driver.memory                         512m
+#spark.executor.memory                       512m
+#spark.yarn.am.memory                        1G
+spark.eventLog.enabled                      true
+spark.eventLog.dir                          {{ spark_log_dir_hadoop }}
+spark.history.provider                      org.apache.spark.deploy.history.FsHistoryProvider
+spark.history.fs.logDirectory               {{ spark_log_dir_hadoop }}
+spark.history.fs.update.interval            10s
+spark.history.ui.port                       18080
+#spark.driver.extraClassPath                /home/hadoop/hive/lib/postgresql-42.5.6.jar
+#spark.executor.extraClassPath              /home/hadoop/hive/lib/postgresql-42.5.6.jar
+{% if with_ozone | bool %}
+spark.hadoop.fs.AbstractFileSystem.ofs.impl org.apache.hadoop.fs.ozone.RootedOzFs
+{% endif %}
+
+{% if spark_with_ssl | bool %}
+spark.ssl.enabled                           true
+spark.ssl.keyStore                          {{ ssl_server_keystore_location }}
+spark.ssl.keyStorePassword                  {{ ssl_password }}
+spark.ssl.trustStore                        {{ ssl_server_truststore_location }}
+spark.ssl.trustStorePassword                {{ ssl_password }}
+{% endif %}
+
+{% if with_kerberos | bool %}
+spark.history.kerberos.enabled 	            true
+spark.history.kerberos.principal            {{ spark_history_kerberos_principal }}
+spark.history.kerberos.keytab               {{ spark_history_kerberos_keytab }}
+spark.kerberos.access.hadoopFileSystems     {{ fs_defaultFS }}
+{% endif %}

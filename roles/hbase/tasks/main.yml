@@ -1,0 +1,19 @@
+---
+- name: Set env vars
+  ansible.builtin.include_tasks: set-env.yml
+
+- name: Install hadoop
+  ansible.builtin.include_tasks: install.yml
+  when:
+    - play_action == "install"
+
+- name: Start Hbase
+  import_tasks: start.yml
+  when:
+    - play_action == "start"
+
+- name: Stop Hbase
+  import_tasks: stop.yml
+  when:
+    - play_action == "stop"
+
